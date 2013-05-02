@@ -12,6 +12,13 @@
     rsvps: Array of objects like {user: userId, rsvp: "yes"} (or "no"/"maybe")
 */
 Rooms = new Meteor.Collection("rooms");
+Messages = new Meteor.Collection("messages");
+
+Messages.allow({
+  insert: function (userId, room, message) {
+    return false;
+  }
+});
 
 Rooms.allow({
   insert: function (userId, room) {
@@ -56,7 +63,24 @@ Meteor.methods({
       public: true,
       messages: []
     });
+  },
+
+  createMessage: function(options) {
+    options = options || {};
+    if (!options.room)
+      throw new Meteor.Error(400, "Required parameter room missing");
+    if (!options.message)
+      throw new Meteor.Error(400, "Required parameter message missing");
+    if (! this.userId) 
+      throw new Meteor.Error(403, "You must be logged in");
+
+    return Messages.insert({
+      user: this.userId,
+      room: options.room,
+      message: options.message
+    });
   }
+
 });
 
 ///////////////////////////////////////////////////////////////////////////////

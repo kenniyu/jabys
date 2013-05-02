@@ -15,16 +15,14 @@
   {{> header }}
 
   <div class="container">
-    <div class="row">
-      <div class="span2"> 
-        {{> chatrooms }}
-      </div>
+    <div class="four columns"> 
+      {{> chatrooms }}
+    </div>
 
-      <div class="span10">
-        {{#if currentChatroom}}
-          {{> chatroom}}
-        {{/if}}
-      </div>
+    <div class="twelve columns">
+      {{#if currentChatroom}}
+        {{> chatroom}}
+      {{/if}}
     </div>
   </div>
 </template>
@@ -51,17 +49,12 @@
 <template name="header">
   <header>
     <div class="container">
-      <div class="row">
-        <div class="span12">
-          <h1>All Chatrooms</h1>
-        </div>
+      <div class="eight columns">
+        <h1>All Chatrooms</h1>
       </div>
-
-      <div class="row">
-        <div class="span5">
-          <div style="float: right">
-            {{loginButtons align="right"}}
-          </div>
+      <div class="eight columns">
+        <div style="float: right">
+          {{loginButtons align="right"}}
         </div>
       </div>
     </div>
@@ -85,17 +78,17 @@
 </template>
 
 <template name="chatroom">
-  <ul>
+  <ul class="chat-messages">
   {{#if messages}}
     {{#each messages}}
-      <li>{{ username }}: {{ message }}</li>
+      <li class="message">{{ message }}</li>
     {{/each}}
   {{else}}
       <li>No messages</li>
   {{/if}}
   </ul>
   <div class="chatbar-wrapper">
-    <input type="text" class="chat-input"/>
+    <input type="text" class="chat-input" placeholder="type shit here"/>
   </div>
 </template>
 

@@ -13,3 +13,7 @@ Meteor.publish("rooms", function () {
     }
   );
 });
+
+Meteor.publish("messages", function () {
+  return Messages.find({});
+});

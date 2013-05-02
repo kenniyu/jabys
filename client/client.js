@@ -2,6 +2,7 @@
 
 Meteor.subscribe("directory");
 Meteor.subscribe("rooms");
+Meteor.subscribe("messages");
 
 // If no room selected, select one.
 Meteor.startup(function () {
@@ -18,9 +19,24 @@ Meteor.startup(function () {
 // Room details sidebar
 
 Template.chatroom.messages = function () {
-  var currentRoom = Rooms.findOne(Session.get('currentChatroom'));
-  return currentRoom.messages;
-}
+  var messages = Messages.find({
+    room: Session.get('currentChatroom')
+  });
+  return messages;
+};
+
+Template.chatroom.events({
+  'keyup .chat-input': function (event) {
+    var keyCode = event.keyCode,
+        message;
+    if (keyCode === 13) {
+      message = $(event.target).val();
+      submitChat(message);
+      $(event.target).val('');
+    }
+    event.preventDefault();
+  }
+});
 
 Template.chatrooms.room = function () {
   return Rooms.findOne(Session.get("selected"));
@@ -175,6 +191,22 @@ Template.map.destroyed = function () {
 ///////////////////////////////////////////////////////////////////////////////
 // Create Room dialog
 
+var submitChat = function(message) {
+  var room = Session.get("currentChatroom"),
+      userId = Meteor.userId(),
+      user = getUser(userId);
+
+  Meteor.call('createMessage', {
+    user: user,
+    room: room,
+    message: message
+  }, function (error, room) {
+    if (! error) {
+      console.log('message sent!');
+    }
+  });
+};
+
 var openCreateDialog = function () {
   Session.set("createError", null);
   Session.set("currentChatroom", null);
@@ -187,6 +219,11 @@ var joinRoom = function(roomId) {
   console.log(room);
   Session.set("currentChatroom", room);
   console.log(room);
+};
+
+var getUser = function(userId) {
+  var user = Meteor.users.findOne({'_id': userId});
+  return user;
 }
 
 Template.page.showCreateDialog = function () {

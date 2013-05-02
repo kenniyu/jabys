@@ -14,9 +14,17 @@ h1 {
   overflow-y: auto;
 }
 
-.chat-container {
+
+.chat-messages .message {
+  padding: 10px;
+}
+.chat-messages .message:nth-child(odd) {
   background: #fff;
-  height: 100%;
+}
+
+
+.chatbar-wrapper {
+  padding: 10px 0;
 }
 
 .details {
