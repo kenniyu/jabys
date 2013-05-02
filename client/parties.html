@@ -1,0 +1,127 @@
+<head>
+  <title>All Chatrooms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+  {{> page}}
+</body>
+
+<template name="page">
+  {{#if showCreateDialog}}
+    {{> createDialog}}
+  {{/if}}
+
+  {{> header }}
+
+  <div class="container">
+    <div class="row">
+      <div class="span2"> 
+        {{> chatrooms }}
+      </div>
+
+      <div class="span10">
+        {{#if currentChatroom}}
+          {{> chatroom}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</template>
+
+<!--
+<template name="map">
+  <div class="map">
+    {{#constant}}
+      <svg width="500" height="500">
+        <circle class="callout" cx=-100 cy=-100></circle>
+        <g class="circles"></g>
+        <g class="labels"></g>
+      </svg>
+    {{/constant}}
+    <div>
+      <small class="attribution muted">&copy;
+        <a href="http://www.openstreetmap.org/?lat=37.78212&lon=-122.40146&zoom=15&layers=M"
+           target="_blank">OpenStreetMap</a> contributors</small>
+    </div>
+  </div>
+</template>
+-->
+
+<template name="header">
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <h1>All Chatrooms</h1>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span5">
+          <div style="float: right">
+            {{loginButtons align="right"}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+</template>
+
+<template name="chatrooms">
+  <div class="chatrooms">
+    <ul class="rooms">
+    {{#each rooms}}
+    <li data-room-id="{{_id}}">
+      <a href="#" class="join">{{title}}</a>
+    </li>
+    {{/each}}
+    <li>
+    <a href="#" class="create">+ Create a room!</a>
+    </li>
+    </ul>
+
+  </div>
+</template>
+
+<template name="chatroom">
+  <ul>
+  {{#if messages}}
+    {{#each messages}}
+      <li>{{ username }}: {{ message }}</li>
+    {{/each}}
+  {{else}}
+      <li>No messages</li>
+  {{/if}}
+  </ul>
+  <div class="chatbar-wrapper">
+    <input type="text" class="chat-input"/>
+  </div>
+</template>
+
+<template name="createDialog">
+  <div class="mask"> </div>
+  <div class="modal">
+    <div class="modal-header">
+      <button type="button" class="close cancel">&times;</button>
+      <h3>Add room</h3>
+    </div>
+
+    <div class="modal-body">
+      {{#if error}}
+        <div class="alert alert-error">{{error}}</div>
+      {{/if}}
+
+      <label>Title</label>
+      <input type="text" class="title span5">
+
+      <label>Description</label>
+      <textarea class="description span5"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="btn cancel">Cancel</a>
+      <a href="#" class="btn btn-primary save">Add room</a>
+    </div>
+  </div>
+</template>
