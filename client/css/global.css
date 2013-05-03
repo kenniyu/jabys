@@ -123,10 +123,15 @@ input[type=submit]:hover {
 
 a.btn {
   display: inline-block;
-  border: 1px solid #000;
+  border: 1px solid #ccc;
   padding: 8px 12px;
 }
 
 .btn.btn-primary {
   float: right;
+}
+
+/* Sections **********************************************/
+.tier {
+  padding: 30px 0;
 }

@@ -18,14 +18,14 @@ Meteor.startup(function () {
 ///////////////////////////////////////////////////////////////////////////////
 // Room details sidebar
 
-Template.chatroom.messages = function () {
+Template.roomTemplate.messages = function () {
   var messages = Messages.find({
-    room: Session.get('currentChatroom')
+    room: Session.get('currentRoom')
   });
   return messages;
 };
 
-Template.chatroom.events({
+Template.roomTemplate.events({
   'keyup .chat-input': function (event) {
     var keyCode = event.keyCode,
         message;
@@ -38,30 +38,55 @@ Template.chatroom.events({
   }
 });
 
-Template.chatrooms.room = function () {
+Template.roomTemplate.room = function () {
   return Rooms.findOne(Session.get("selected"));
 };
 
-Template.chatrooms.rooms = function () {
+Template.roomTemplate.allUsers = function() {
+  var roomId = Session.get('currentRoom')._id,
+      room = Rooms.findOne({'_id': roomId}),
+      allUsers;
+
+  allUsers = Meteor.users.find(
+    {_id: {$in: room.allUsers}}
+  );
+  return allUsers;
+};
+
+Template.roomTemplate.displayName = function () {
+  var userId = this.user || this._id,
+      user = Meteor.users.findOne(userId);
+
+  if (user) {
+    if (user._id === Meteor.userId()) {
+      return 'me';
+    }
+    return displayName(user);
+  } else {
+    return 'none';
+  }
+};
+
+Template.allRoomsTemplate.rooms = function () {
   return Rooms.find();
 };
 
-Template.chatrooms.anyRooms = function () {
+Template.allRoomsTemplate.anyRooms = function () {
   return Rooms.find().count() > 0;
 };
 
-Template.chatrooms.creatorName = function () {
+Template.allRoomsTemplate.creatorName = function () {
   var owner = Meteor.users.findOne(this.owner);
   if (owner._id === Meteor.userId())
     return "me";
   return displayName(owner);
 };
 
-Template.chatrooms.canRemove = function () {
+Template.allRoomsTemplate.canRemove = function () {
   return this.owner === Meteor.userId();
 };
 
-Template.chatrooms.events({
+Template.allRoomsTemplate.events({
   'click .remove': function () {
     Rooms.remove(this._id);
     return false;
@@ -192,7 +217,7 @@ Template.map.destroyed = function () {
 // Create Room dialog
 
 var submitChat = function(message) {
-  var room = Session.get("currentChatroom"),
+  var room = Session.get("currentRoom"),
       userId = Meteor.userId(),
       user = getUser(userId);
 
@@ -209,16 +234,23 @@ var submitChat = function(message) {
 
 var openCreateDialog = function () {
   Session.set("createError", null);
-  Session.set("currentChatroom", null);
+  Session.set("currentRoom", null);
   Session.set("showCreateDialog", true);
 };
 
 var joinRoom = function(roomId) {
-  console.log(roomId);
   var room = Rooms.findOne({'_id': roomId});
-  console.log(room);
-  Session.set("currentChatroom", room);
-  console.log(room);
+
+  Meteor.call('addUserToRoom', Meteor.userId(), roomId);
+  Session.set("currentRoom", room);
+};
+
+var leaveRoom = function() {
+  var roomId = Session.get('currentRoom')._id,
+      room = Rooms.findOne({'_id': roomId}),
+      userId = Meteor.userId();
+
+  Session.set('currentRoom', null);
 };
 
 var getUser = function(userId) {
@@ -234,9 +266,20 @@ Template.page.getCurrentChats = function () {
   return Session.get("showCreateDialog");
 };
 
-Template.page.currentChatroom = function() {
-  return Session.get("currentChatroom");
-}
+Template.page.currentRoom = function() {
+  return Session.get("currentRoom");
+};
+
+Template.header.currentRoom = function() {
+  return Session.get("currentRoom");
+};
+
+Template.header.events({
+  'click .leave': function(event) {
+    leaveRoom();
+    event.preventDefault();
+  }
+});
 
 Template.createDialog.events({
   'click .save': function (event, template) {
@@ -255,7 +298,7 @@ Template.createDialog.events({
       }, function (error, room) {
         if (! error) {
           Session.set("selected", room);
-          Session.set("currentChatroom", room);
+          Session.set("currentRoom", room);
         }
       });
       Session.set("showCreateDialog", false);
@@ -265,8 +308,9 @@ Template.createDialog.events({
     }
   },
 
-  'click .cancel': function () {
+  'click .cancel': function (event) {
     Session.set("showCreateDialog", false);
+    event.preventDefault();
   }
 });
 

@@ -25,12 +25,14 @@ Rooms.allow({
     return false; // no cowboy inserts -- use createParty method
   },
   update: function (userId, room, fields) {
+    /*
     if (userId !== room.owner)
       return false; // not the owner
 
     var allowed = ["title", "description"];
     if (_.difference(fields, allowed).length)
       return false; // tried to write to forbidden field
+     */
 
     // A good improvement would be to validate the type of the new
     // value of the field (and if a string, the length.) In the
@@ -61,7 +63,7 @@ Meteor.methods({
       title: options.title,
       description: options.description,
       public: true,
-      messages: []
+      allUsers: []
     });
   },
 
@@ -79,6 +81,11 @@ Meteor.methods({
       room: options.room,
       message: options.message
     });
+  },
+
+  addUserToRoom: function(userId, roomId) {
+    var room = Rooms.findOne({'_id': roomId});
+    Rooms.update({'_id': roomId}, {$addToSet: { allUsers: userId } });
   }
 
 });

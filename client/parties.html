@@ -1,5 +1,5 @@
 <head>
-  <title>All Chatrooms</title>
+  <title>Jabys</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
@@ -14,82 +14,150 @@
 
   {{> header }}
 
-  <div class="container">
-    <div class="four columns"> 
-      {{> chatrooms }}
-    </div>
+  {{#if currentRoom}}
+    {{> roomTemplate}}
+  {{else}}
+    {{> allRoomsTemplate}}
+  {{/if}}
 
-    <div class="twelve columns">
-      {{#if currentChatroom}}
-        {{> chatroom}}
-      {{/if}}
-    </div>
+
   </div>
 </template>
-
-<!--
-<template name="map">
-  <div class="map">
-    {{#constant}}
-      <svg width="500" height="500">
-        <circle class="callout" cx=-100 cy=-100></circle>
-        <g class="circles"></g>
-        <g class="labels"></g>
-      </svg>
-    {{/constant}}
-    <div>
-      <small class="attribution muted">&copy;
-        <a href="http://www.openstreetmap.org/?lat=37.78212&lon=-122.40146&zoom=15&layers=M"
-           target="_blank">OpenStreetMap</a> contributors</small>
-    </div>
-  </div>
-</template>
--->
 
 <template name="header">
   <header>
     <div class="container">
       <div class="eight columns">
-        <h1>All Chatrooms</h1>
+        <h1>Jabys - Lobby</h1>
       </div>
       <div class="eight columns">
         <div style="float: right">
           {{loginButtons align="right"}}
+          {{#if currentRoom}}
+          <a href="#" class="leave">Leave Room</a>
+          {{/if}}
         </div>
       </div>
     </div>
   </header>
 </template>
 
-<template name="chatrooms">
-  <div class="chatrooms">
-    <ul class="rooms">
-    {{#each rooms}}
-    <li data-room-id="{{_id}}">
-      <a href="#" class="join">{{title}}</a>
-    </li>
-    {{/each}}
-    <li>
-    <a href="#" class="create">+ Create a room!</a>
-    </li>
-    </ul>
+<template name="allRoomsTemplate">
+  <div class="container">
+    <div class="sixteen columns">
 
+      <div class="chatrooms">
+        <ul class="rooms-list">
+        {{#each rooms}}
+        <li class="room" data-room-id="{{_id}}">
+          <a href="#" class="join">{{title}}</a>
+        </li>
+        {{/each}}
+        </ul>
+      </div>
+      <div class="new-room">
+        <a href="#" class="btn create">+ Create a room!</a>
+      </div>
+    </div>
   </div>
 </template>
 
-<template name="chatroom">
-  <ul class="chat-messages">
-  {{#if messages}}
-    {{#each messages}}
-      <li class="message">{{ message }}</li>
-    {{/each}}
-  {{else}}
-      <li>No messages</li>
-  {{/if}}
-  </ul>
-  <div class="chatbar-wrapper">
-    <input type="text" class="chat-input" placeholder="type shit here"/>
+<template name="roomTemplate">
+<section class="tier block-content">
+  <div class="container">
+
+    <div class="twelve columns">
+      <section class="game-container">
+
+        <!--
+          $('.card').each(function(index, item) { var numCards = $('.card').length; $(item).css({'left': 0, 'transform': 'rotate('+((index-25/2)*5)+'deg) translate('+(25/2-index)*25/1.5+'px, ' + Math.abs((25/2-index)*10) + 'px)', '-webkit-transform-origin': "50% 400%", }); });
+          $('.card').each(function(index, item) { var numCards = $('.card').length; $(item).css({'left': 0, 'transform': 'rotate('+((index-25/2)*5)+'deg) translate('+(25/2-index)*10+'px, ' + Math.sin((index-25/2)*20) + 'px)', '-webkit-transform-origin': "50% 300%", }); });
+        -->
+
+        <div class="player-slot top">
+          <div class="profile"></div>
+          <div class="cards-container">
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>A<br />&clubs;</div><div class='ace'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>2<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>3<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>4<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>5<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>6<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>7<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>8<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>9<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>10<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>J<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>Q<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>K<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>A<br />&clubs;</div><div class='ace'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>2<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>3<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>4<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>5<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>6<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>7<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>8<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>9<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>10<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>J<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>Q<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+            <div class='card'><div class='front black'><div class='index' data-suit='c'>K<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>
+          </div>
+        </div>
+
+        <div class="player-slot right">
+          <div class="profile"></div>
+          <div class="cards-container"></div>
+        </div>
+
+        <div class="player-slot bottom">
+          <div class="profile"></div>
+          <div class="cards-container"></div>
+        </div>
+
+        <div class="player-slot left">
+          <div class="profile"></div>
+          <div class="cards-container"></div>
+        </div>
+
+      </section>
+    </div>
+
+    <div class="four columns">
+      <aside class="game-options">
+        <div class="players-wrapper">
+          <h2 class="heading players">Noobs/Pros</h2>
+          <ul class="players">
+            {{#each allUsers}}
+            <li class="player">
+              <span class="display-name">{{ displayName }}</span>
+            </li>
+            {{/each}}
+          </ul>
+        </div>
+        <div class="chat-wrapper">
+          <h2 class="heading chat">Trash Talk</h2>
+          <ul class="chat-messages">
+          {{#if messages}}
+            {{#each messages}}
+            <li class="message">
+              <span class="display-name">{{ displayName }}</span>:
+              <span class="text">{{ message }}</span>
+            </li>
+            {{/each}}
+          {{else}}
+            <li>No messages</li>
+          {{/if}}
+          </ul>
+          <div class="chat-bar">
+            <input type="text" class="chat-input" placeholder="type shit here"/>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
+</section>
 </template>
 
 <template name="createDialog">

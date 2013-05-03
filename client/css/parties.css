@@ -1,35 +1,66 @@
 header {
   background: rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  padding: 20px;
 }
 
 
-h1 {
+.new-room {
   text-align: center;
 }
 
-.chatrooms {
-  border-right: 1px solid #ccc;
-  box-shadow: 1px 0 0 #fff;
-  overflow-y: auto;
-}
+  .new-room .create {
+    margin: 10px;
+    display: inline-block;
+  }
 
 
-.chat-messages .message {
-  padding: 10px;
-}
-.chat-messages .message:nth-child(odd) {
-  background: #fff;
-}
-
-
-.chatbar-wrapper {
-  padding: 10px 0;
+/* Game sidebar */
+.game-options {
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 1px 0 #fff;
 }
 
-.details {
-    margin-top: -18px;
-}
+  .game-options h2 {
+    text-align: center;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .game-options .heading.players {
+    border-radius: 5px 5px 0 0;
+  }
+
+  .chat-messages {
+    padding: 0 1px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+  }
+
+    .chat-messages .message:nth-child(odd) {
+      background: #fff;
+    }
+
+      .chat-messages .message .display-name {
+        font-weight: bold;
+      }
+      .chat-messages .message .text {
+      }
+
+        .chat-wrapper input.chat-input {
+          border-radius: 0 0 5px 5px;
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+          border: 0;
+          margin: 0;
+          margin-bottom: 1px;
+        }
+
 
 .mask {
     position: absolute;
@@ -42,65 +73,143 @@ h1 {
     z-index: 1;
 }
 
-.invite-row .invite {
-    margin: 10px 10px 10px 0;
+/* Game container */
+.game-container {
+  position: relative;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  height: 469px;
+  box-shadow: 0 1px 0 #fff;
 }
 
-.rsvp-buttons {
-    text-align: center;
-    margin: 40px 0 40px 0;
-}
-
-.description {
-    margin: 20px 0 20px 0;
-}
-
-.attendance .who {
-    margin-bottom: 5px;
-}
-
-.attendance .invite {
-    text-align: center;
-}
-
-input.chosen {
-    font-weight: bold;
-}
-
-.map {
-    position: relative;
-    background-image: url('/soma.png');
-    background-position: -20px -20px;
-    width: 500px;
-    height: 500px;
-}
-
-.map circle.public {
-    fill: #49AFCD;
-}
-
-.map circle.private {
-    fill: #DA4F49;
-}
-
-.map text {
-    text-anchor: middle;
-    fill: white;
-    font-weight: bold;
-}
-
-.map circle.callout {
-    stroke-width: 5px;
-    stroke-dasharray: 9, 5;
-    stroke-opacity: .8;
-    fill: none;
-    stroke: red;
-}
-
-.attribution {
+  .game-container .player-slot {
     position: absolute;
-    bottom: 0;
-    background-color: white;
-    padding: 3px;
-    padding-bottom: 0;
+    height: 100px;
+    width: 400px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 1px 0 #fff;
+  }
+
+    .player-slot .cards-container {
+      position: relative;
+      left: 165px;
+    }
+
+    .player-slot.top {
+      top: 20px;
+      left: 150px;
+    }
+
+    .player-slot.bottom {
+      bottom: 20px;
+      left: 150px;
+    }
+
+    .player-slot.left {
+      left: -130px;
+      top: 185px;
+      transform:rotate(90deg);
+      -ms-transform:rotate(90deg);
+      -webkit-transform:rotate(90deg);
+    }
+
+    .player-slot.right {
+      right: -130px;
+      top: 185px;
+      transform:rotate(-90deg);
+      -ms-transform:rotate(-90deg);
+      -webkit-transform:rotate(-90deg);
+    }
+
+
+/* Card ********************************************/
+.black {
+  color: black;
+}
+
+.red {
+  color: #ff0000;
+}
+
+.card {
+  background-image: url("/images/cardback/bicycle_blue.png");
+  background-size: 100px 130px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #333333;
+  position: absolute;
+  font-size: 23px;
+  width:  70px;
+  height: 100px;
+  -webkit-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+  box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+}
+
+.front {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 0px;
+  background-color: #ffffff;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.spotA1 { position: absolute; left: 15px; top: 6px; }
+.spotA2 { position: absolute; left: 15px; top: 27px; }
+.spotA3 { position: absolute; left: 15px; top: 38px; }
+.spotA4 { position: absolute; left: 15px; top: 49px; }
+.spotA5 { position: absolute; left: 15px; top: 70px; }
+.spotB1 { position: absolute; left: 28px; top: 6px; }
+.spotB2 { position: absolute; left: 28px; top: 17px; }
+.spotB3 { position: absolute; left: 28px; top: 38px; }
+.spotB4 { position: absolute; left: 28px; top: 59px; }
+.spotB5 { position: absolute; left: 28px; top: 70px; }
+.spotC1 { position: absolute; left: 41px; top: 6px; }
+.spotC2 { position: absolute; left: 41px; top: 27px; }
+.spotC3 { position: absolute; left: 41px; top: 38px; }
+.spotC4 { position: absolute; left: 41px; top: 49px; }
+.spotC5 { position: absolute; left: 41px; top: 70px; }
+
+.ace {
+  font-size: 250%;
+  position: absolute;
+  left: 16px;
+  top:  20px;
+}
+.index {
+  font-size: 53%;
+  font-weight: bold;
+  text-align: center;
+  position: absolute;
+  left: 0.25em;
+  top:  0.25em;
+}
+
+.face {
+  border: 1px solid #000000;
+  position: absolute;
+  left: 12px;
+  top:  12px;
+  width: 45px;
+  height: 75px;
+}
+
+.face + .spotA1 {
+  font-size: 20px;
+  left: 14px;
+  top: 10px;
+}
+
+.face + .spotA1 + .spotC5 {
+  font-size: 20px;
+  left: 44px;
+  top: 69px;
+}
+
+aside ul li {
+  padding: 10px;
 }
