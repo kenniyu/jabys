@@ -142,54 +142,250 @@ Template.roomTemplate.displayName = function () {
   }
 };
 
+Template.roomTemplate.displayCard = function(cardLabel) {
+  var val, suit, htmlString;
+  if (cardLabel) {
+    if (cardLabel.length == 3) {
+      val = '10';
+      suit = cardLabel[2];
+    }
+    else {
+      val = cardLabel[0];
+      suit = cardLabel[1];
+    }
+
+    switch (suit) {
+      case "C":
+        switch (val) {
+          case 'A':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>A<br />&clubs;</div><div class='ace'>&clubs;</div></div></div>";
+            break;
+          case '2':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>2<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>";
+            break;
+          case '3':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>3<br />&clubs;</div><div class='spotB1'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotB5'>&clubs;</div></div></div>";
+            break;
+          case '4':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>4<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case '5':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>5<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case '6':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>6<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case '7':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>7<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case '8':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>8<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;          
+          case '9':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>9<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case '10':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>10<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case 'J':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>J<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case 'Q':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>Q<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+          case 'K':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>K<br />&clubs;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
+            break;
+        }
+        break;
+
+      case "D":
+        switch (val) {
+          case 'A':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>A<br />&diams;</div><div class='ace'>&diams;</div></div></div>";
+            break;
+          case '2':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>2<br />&diams;</div><div class='spotB1'>&diams;</div><div class='spotB5'>&diams;</div></div></div>";
+            break;
+          case '3':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>3<br />&diams;</div><div class='spotB1'>&diams;</div><div class='spotB3'>&diams;</div><div class='spotB5'>&diams;</div></div></div>";
+            break;
+          case '4':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>4<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case '5':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>5<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB3'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case '6':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>6<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA3'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC3'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case '7':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>7<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA3'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB2'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC3'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case '8':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>8<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA3'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB2'>&diams;</div><div class='spotB4'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC3'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;          
+          case '9':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>9<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA2'>&diams;</div><div class='spotA4'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB3'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC2'>&diams;</div><div class='spotC4'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case '10':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>10<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA2'>&diams;</div><div class='spotA4'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB2'>&diams;</div><div class='spotB4'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC2'>&diams;</div><div class='spotC4'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case 'J':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>J<br />&diams;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case 'Q':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>Q<br />&diams;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+          case 'K':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='d'>K<br />&diams;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
+            break;
+        }
+        break;
+
+      case "H":
+        switch (val){
+          case 'A':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>A<br />&hearts;</div><div class='ace'>&hearts;</div></div></div>";
+            break;
+          case '2':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>2<br />&hearts;</div><div class='spotB1'>&hearts;</div><div class='spotB5'>&hearts;</div></div></div>";
+            break;
+          case '3':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>3<br />&hearts;</div><div class='spotB1'>&hearts;</div><div class='spotB3'>&hearts;</div><div class='spotB5'>&hearts;</div></div></div>";
+            break;
+          case '4':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>4<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case '5':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>5<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotB3'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case '6':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>6<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA3'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC3'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case '7':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>7<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA3'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotB2'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC3'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case '8':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>8<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA3'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotB2'>&hearts;</div><div class='spotB4'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC3'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;          
+          case '9':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>9<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA2'>&hearts;</div><div class='spotA4'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotB3'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC2'>&hearts;</div><div class='spotC4'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case '10':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>10<br />&hearts;</div><div class='spotA1'>&hearts;</div><div class='spotA2'>&hearts;</div><div class='spotA4'>&hearts;</div><div class='spotA5'>&hearts;</div><div class='spotB2'>&hearts;</div><div class='spotB4'>&hearts;</div><div class='spotC1'>&hearts;</div><div class='spotC2'>&hearts;</div><div class='spotC4'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case 'J':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>J<br />&hearts;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case 'Q':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>Q<br />&hearts;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          case 'K':
+            htmlString = "<div class='card'><div class='front red'><div class='index' data-suit='h'>K<br />&hearts;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&hearts;</div><div class='spotC5'>&hearts;</div></div></div>";
+            break;
+          }
+          break;
+
+      case "S":
+        switch (val) {
+          case 'A':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>A<br />&spades;</div><div class='ace'>&spades;</div></div></div>";
+            break;
+          case '2':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>2<br />&spades;</div><div class='spotB1'>&spades;</div><div class='spotB5'>&spades;</div></div></div>";
+            break;
+          case '3':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>3<br />&spades;</div><div class='spotB1'>&spades;</div><div class='spotB3'>&spades;</div><div class='spotB5'>&spades;</div></div></div>";
+            break;
+          case '4':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>4<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case '5':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>5<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotB3'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case '6':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>6<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA3'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC3'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case '7':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>7<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA3'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotB2'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC3'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case '8':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>8<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA3'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotB2'>&spades;</div><div class='spotB4'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC3'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;          
+          case '9':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>9<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA2'>&spades;</div><div class='spotA4'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotB3'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC2'>&spades;</div><div class='spotC4'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case '10':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>10<br />&spades;</div><div class='spotA1'>&spades;</div><div class='spotA2'>&spades;</div><div class='spotA4'>&spades;</div><div class='spotA5'>&spades;</div><div class='spotB2'>&spades;</div><div class='spotB4'>&spades;</div><div class='spotC1'>&spades;</div><div class='spotC2'>&spades;</div><div class='spotC4'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case 'J':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>J<br />&spades;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/jack.gif' alt='' /><div class='spotA1'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case 'Q':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>Q<br />&spades;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/queen.gif' alt='' /><div class='spotA1'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          case 'K':
+            htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='s'>K<br />&spades;</div><img class='face' src='http://www.brainjar.com/css/cards/graphics/king.gif' alt='' /><div class='spotA1'>&spades;</div><div class='spotC5'>&spades;</div></div></div>";
+            break;
+          }
+        break;
+    }
+  }
+  else {
+    htmlString = "<div class='card'></div>"; 
+  }
+  return htmlString;
+}
+
 Template.allRoomsTemplate.rooms = function () {
-  var rooms = Rooms.find(
-    {},
-    {sort: {title: 1} }
-  );
-  return rooms;
+var rooms = Rooms.find(
+{},
+{sort: {title: 1} }
+);
+return rooms;
 };
 
 Template.allRoomsTemplate.anyRooms = function () {
-  return Rooms.find().count() > 0;
+return Rooms.find().count() > 0;
 };
 
 Template.allRoomsTemplate.creatorName = function () {
-  var owner = Meteor.users.findOne(this.owner);
-  if (owner._id === Meteor.userId())
-    return "me";
-  return displayName(owner);
+var owner = Meteor.users.findOne(this.owner);
+if (owner._id === Meteor.userId())
+return "me";
+return displayName(owner);
 };
 
 Template.allRoomsTemplate.canRemove = function () {
-  return this.owner === Meteor.userId();
+return this.owner === Meteor.userId();
 };
 
 Template.allRoomsTemplate.inRoom = function () {
-  return _.contains(this.allUsers, Meteor.userId());
+return _.contains(this.allUsers, Meteor.userId());
 };
 
 Template.allRoomsTemplate.numUsers = function () {
-  if (this && this.allUsers) {
-    return this.allUsers.length || 0;
-  }
-  return '0';
+if (this && this.allUsers) {
+return this.allUsers.length || 0;
+}
+return '0';
 };
 
 Template.allRoomsTemplate.events({
-  'click .remove': function () {
-    Rooms.remove(this._id);
-    return false;
-  },
-  'click .create': function (event) {
-    openCreateDialog();
-    event.preventDefault();
-  },
-  'click .join': function (event) {
-    var roomId = $(event.target).closest('li').attr('data-room-id');
-    joinRoom(roomId);
-    event.preventDefault();
-  }
+'click .remove': function () {
+Rooms.remove(this._id);
+return false;
+},
+'click .create': function (event) {
+openCreateDialog();
+event.preventDefault();
+},
+'click .join': function (event) {
+var roomId = $(event.target).closest('li').attr('data-room-id');
+joinRoom(roomId);
+event.preventDefault();
+}
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -197,32 +393,32 @@ Template.allRoomsTemplate.events({
 
 /*
 Template.attendance.rsvpName = function () {
-  var user = Meteor.users.findOne(this.user);
-  return displayName(user);
+var user = Meteor.users.findOne(this.user);
+return displayName(user);
 };
 
 Template.attendance.outstandingInvitations = function () {
-  var party = Parties.findOne(this._id);
-  return Meteor.users.find({$and: [
-    {_id: {$in: party.invited}}, // they're invited
-    {_id: {$nin: _.pluck(party.rsvps, 'user')}} // but haven't RSVP'd
-  ]});
+var party = Parties.findOne(this._id);
+return Meteor.users.find({$and: [
+{_id: {$in: party.invited}}, // they're invited
+{_id: {$nin: _.pluck(party.rsvps, 'user')}} // but haven't RSVP'd
+]});
 };
 
 Template.attendance.invitationName = function () {
-  return displayName(this);
+return displayName(this);
 };
 
 Template.attendance.rsvpIs = function (what) {
-  return this.rsvp === what;
+return this.rsvp === what;
 };
 
 Template.attendance.nobody = function () {
-  return ! this.public && (this.rsvps.length + this.invited.length === 0);
+return ! this.public && (this.rsvps.length + this.invited.length === 0);
 };
 
 Template.attendance.canInvite = function () {
-  return ! this.public && this.owner === Meteor.userId();
+return ! this.public && this.owner === Meteor.userId();
 };
 */
 
@@ -557,21 +753,37 @@ var setPlayerReady = function() {
 };
 
 var toCardObj = function(cardStr) {
-  var cardObj;
+  var cardObj,
+      index,
+      value,
+      suit,
+      label,
+      suitColor;
+
   if (cardStr.length === 3) {
-    cardObj = {
-      'label': cardStr,
-      'index': 10,
-      'value': 10,
-      'suit': cardStr.substring(2)
-    }
+    index = 10;
+    value = 10;
+    suit = cardStr.substring(2);
+    label = cardStr;
   } else {
-    cardObj = {
-      'label': cardStr,
-      'index': cardStr.substring(0, 1),
-      'value': cardStr.substring(0, 1),
-      'suit': cardStr.substring(1)
-    }
+    index = cardStr.substring(0, 1);
+    value = cardStr.substring(0, 1);
+    suit = cardStr.substring(1);
+    label = cardStr;
+  }
+
+  if (suit === 'C' || suit === 'S') {
+    suitColor = 'black';
+  } else {
+    suitColor = 'red';
+  }
+
+  cardObj = {
+    'label': label,
+    'index': cardStr.substring(0, 1),
+    'value': cardStr.substring(0, 1),
+    'suit': cardStr.substring(1),
+    'color': suitColor
   }
   return cardObj;
 };
