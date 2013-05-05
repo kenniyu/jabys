@@ -5,6 +5,7 @@ Meteor.subscribe("rooms");
 Meteor.subscribe("messages");
 Meteor.subscribe("games");
 Meteor.subscribe("gameHistory");
+Meteor.subscribe("hands");
 
 // If no room selected, select one.
 Meteor.startup(function () {
@@ -54,23 +55,34 @@ Template.roomTemplate.readied = function() {
   return _.contains(room.readyPlayers, userId);
 };
 
+Template.roomTemplate.myHand = function() {
+};
+
 Template.roomTemplate.myCards = function() {
   var roomId = Session.get('currentRoom'),
       userId = Meteor.userId(),
       game = Games.findOne({'room': roomId, 'state': 'playing'}),
       gameId,
-      hand;
+      hand,
+      cards = [],
+      card,
+      numCards;
 
   if (game) {
     gameId = game._id;
-    hand = Meteor.call('getHand', userId, gameId);
-    console.log(gameId);
-    console.log(hand);
-    return hand;
-  } else {
-    console.log('no game yet');
-    return [];
+    hand = Hands.findOne({'game': gameId, 'user': userId});
+    if (hand) {
+      cards = _.map(hand.cards, toCardObj);
+    }
+    /*
+    Meteor.call('getHand', userId, gameId, function(error, hand) {
+      Session.set("currentHand", hand);
+      return hand;
+    });
+    */
   }
+  console.log(cards);
+  return cards;
 };
 
 Template.roomTemplate.events({
@@ -499,7 +511,6 @@ var leaveRoomCb = function(roomId) {
       Meteor.call('setGameState', game._id, 'finished');
       Meteor.call('setGamePlace', room.allUsers[0]);
       Meteor.call('clearReadyPlayers', roomId);
-      Session.set('currentGame', null);
     }
     Meteor.call('setRoomReady', roomId, false);
   } else {
@@ -540,14 +551,27 @@ var setPlayerReady = function() {
     // refetch the room
     room = Rooms.findOne({'_id': roomId});
     if (room.ready && room.readyPlayers.length === room.allUsers.length) {
-      Meteor.call('startGame', roomId, function (error, game) {
-        if (! error) {
-          console.log(game);
-          Session.set('currentGame', game);
-          // after game succesfully starts, deal everyone their hands
-          Meteor.call('dealHands', game);
-        }
-      });
+      Meteor.call('startGame', roomId);
     }
   }
+};
+
+var toCardObj = function(cardStr) {
+  var cardObj;
+  if (cardStr.length === 3) {
+    cardObj = {
+      'label': cardStr,
+      'index': 10,
+      'value': 10,
+      'suit': cardStr.substring(2)
+    }
+  } else {
+    cardObj = {
+      'label': cardStr,
+      'index': cardStr.substring(0, 1),
+      'value': cardStr.substring(0, 1),
+      'suit': cardStr.substring(1)
+    }
+  }
+  return cardObj;
 };

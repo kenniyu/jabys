@@ -18,7 +18,7 @@ Meteor.publish("games", function () {
 
 Meteor.publish('hands', function() {
   return Hands.find({
-    $or: [{user: this.userId}]
+    $or: [{'user': this.userId}]
   });
 });
 
@@ -53,16 +53,24 @@ Meteor.methods({
     } else {
       numCardsPerPerson = Jabys['CONSTANTS']['GAME']['DEALING']['4_PLAYERS'];
     }
+    console.log(numPlayers + ' players');
 
     for (var i = 0; i < numPlayers; i++) {
       playerId = players[i];
+
       playerCards = _.first(shuffledDeck, numCardsPerPerson);
-      Meteor.call('createHand', playerId, gameId, playerCards);
+      console.log('player ' + playerId+' has cards:');
+      console.log(playerCards);
+
+      Meteor.call('createHand', playerId, gameId, playerCards, function(error, data) {
+        console.log('done creating hand for player ' + playerId);
+      });
       shuffledDeck = _.difference(shuffledDeck, playerCards);
     }
   },
 
   startGame: function(roomId) {
+    console.log('start game was called');
     var room    = Rooms.findOne({'_id': roomId}),
         game,
         doCreateGame = false;
@@ -83,9 +91,15 @@ Meteor.methods({
 
     if (doCreateGame) {
       // create the game
-      return Meteor.call('createGame', {
+      Meteor.call('createGame', {
         players: room.allUsers,
         room: roomId
+      }, function(error, game) {
+        if (! error) {
+          console.log(game);
+          // after game successfully starts, deal everyone their hands
+          Meteor.call('dealHands', game);
+        }
       });
     }
   },
@@ -125,6 +139,7 @@ Meteor.methods({
     var hand,
         numCards,
         cards = [];
+
     if (userId !== Meteor.userId()) {
       // get the hand
       hand = Hands.findOne({'user': userId, 'game': gameId});
@@ -139,36 +154,17 @@ Meteor.methods({
       hand = Hands.findOne({'user': userId, 'game': gameId});
       console.log('my user id = ' + Meteor.userId());
       console.log('i want ' + userId + ' hand ');
-      console.log(hand);
       if (hand) {
         numCards = hand.cards.length;
         for (var i = 0; i < numCards; i++) {
           cards.push(Meteor.call('toCardObj', hand.cards[i]));
         }
       }
+      console.log(cards);
       return cards;
     }
-  },
-
-  toCardObj: function(cardStr) {
-    var cardObj;
-    if (cardStr.length === 3) {
-      cardObj = {
-        'label': cardStr,
-        'index': 10,
-        'value': 10,
-        'suit': cardStr.substring(2)
-      }
-    } else {
-      cardObj = {
-        'label': cardStr,
-        'index': cardStr.substring(0, 1),
-        'value': cardStr.substring(0, 1),
-        'suit': cardStr.substring(1)
-      }
-    }
-    return cardObj;
   }
+
 
 
   /*
