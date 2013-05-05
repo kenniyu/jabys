@@ -55,7 +55,24 @@ Template.roomTemplate.readied = function() {
   return _.contains(room.readyPlayers, userId);
 };
 
-Template.roomTemplate.myHand = function() {
+
+Template.roomTemplate.topCards = function() {
+  var roomId = Session.get('currentRoom'),
+      userId = Meteor.userId(),
+      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      hand,
+      gameId;
+
+  if (game) {
+    gameId = game._id;
+    Meteor.call('getOthersHand', userId, gameId, function(error, cards) {
+      //Session.set('topNumCards', cards.length);
+      console.log(cards);
+      return cards;
+    });
+  } else {
+    return [];
+  }
 };
 
 Template.roomTemplate.myCards = function() {
@@ -65,6 +82,7 @@ Template.roomTemplate.myCards = function() {
       gameId,
       hand,
       cards = [],
+      sortedCards,
       card,
       numCards;
 
@@ -72,7 +90,8 @@ Template.roomTemplate.myCards = function() {
     gameId = game._id;
     hand = Hands.findOne({'game': gameId, 'user': userId});
     if (hand) {
-      cards = _.map(hand.cards, toCardObj);
+      sortedCards = sortHand(hand.cards);
+      cards = _.map(sortedCards, toCardObj);
     }
     /*
     Meteor.call('getHand', userId, gameId, function(error, hand) {
@@ -83,6 +102,25 @@ Template.roomTemplate.myCards = function() {
   }
   console.log(cards);
   return cards;
+};
+
+Template.roomTemplate.rendered = function() {
+  if ($('.player-slot.bottom .card').length > 0) {
+    setTimeout(function() {
+      $('.player-slot.bottom .card').each(function(index, item) {
+        var numCards = $('.card').length,
+        rotationFactor = 7.83 * Math.pow(2.718, -0.086*numCards),
+        rotation = (index - (numCards-1)/2)*rotationFactor,
+        transY = Math.sin(rotation)/5;
+
+        $(item).css({
+          'left': 0,
+          'transform': 'rotate('+rotation+'deg) translate(0px, ' + transY + 'px)',
+          'transform-origin': "50% 900%"
+        });
+      });
+    }, 100);
+  }
 };
 
 Template.roomTemplate.events({
@@ -144,7 +182,7 @@ Template.roomTemplate.displayName = function () {
 
 Template.roomTemplate.displayCard = function(cardLabel) {
   var val, suit, htmlString;
-  if (cardLabel) {
+  if (cardLabel !== 'dummy') {
     if (cardLabel.length == 3) {
       val = '10';
       suit = cardLabel[2];
@@ -180,7 +218,7 @@ Template.roomTemplate.displayCard = function(cardLabel) {
             break;
           case '8':
             htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>8<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA3'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB2'>&clubs;</div><div class='spotB4'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC3'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
-            break;          
+            break;
           case '9':
             htmlString = "<div class='card'><div class='front black'><div class='index' data-suit='c'>9<br />&clubs;</div><div class='spotA1'>&clubs;</div><div class='spotA2'>&clubs;</div><div class='spotA4'>&clubs;</div><div class='spotA5'>&clubs;</div><div class='spotB3'>&clubs;</div><div class='spotC1'>&clubs;</div><div class='spotC2'>&clubs;</div><div class='spotC4'>&clubs;</div><div class='spotC5'>&clubs;</div></div></div>";
             break;
@@ -333,59 +371,60 @@ Template.roomTemplate.displayCard = function(cardLabel) {
     }
   }
   else {
+    console.log('called without a cardlabel');
     htmlString = "<div class='card'></div>"; 
   }
   return htmlString;
 }
 
 Template.allRoomsTemplate.rooms = function () {
-var rooms = Rooms.find(
-{},
-{sort: {title: 1} }
-);
-return rooms;
+  var rooms = Rooms.find(
+    {},
+    {sort: {title: 1} }
+  );
+  return rooms;
 };
 
 Template.allRoomsTemplate.anyRooms = function () {
-return Rooms.find().count() > 0;
+  return Rooms.find().count() > 0;
 };
 
 Template.allRoomsTemplate.creatorName = function () {
-var owner = Meteor.users.findOne(this.owner);
-if (owner._id === Meteor.userId())
-return "me";
-return displayName(owner);
+  var owner = Meteor.users.findOne(this.owner);
+  if (owner._id === Meteor.userId())
+    return "me";
+  return displayName(owner);
 };
 
 Template.allRoomsTemplate.canRemove = function () {
-return this.owner === Meteor.userId();
+  return this.owner === Meteor.userId();
 };
 
 Template.allRoomsTemplate.inRoom = function () {
-return _.contains(this.allUsers, Meteor.userId());
+  return _.contains(this.allUsers, Meteor.userId());
 };
 
 Template.allRoomsTemplate.numUsers = function () {
-if (this && this.allUsers) {
-return this.allUsers.length || 0;
-}
-return '0';
+  if (this && this.allUsers) {
+    return this.allUsers.length || 0;
+  }
+  return '0';
 };
 
 Template.allRoomsTemplate.events({
-'click .remove': function () {
-Rooms.remove(this._id);
-return false;
-},
-'click .create': function (event) {
-openCreateDialog();
-event.preventDefault();
-},
-'click .join': function (event) {
-var roomId = $(event.target).closest('li').attr('data-room-id');
-joinRoom(roomId);
-event.preventDefault();
-}
+  'click .remove': function () {
+    Rooms.remove(this._id);
+    return false;
+  },
+  'click .create': function (event) {
+    openCreateDialog();
+    event.preventDefault();
+  },
+  'click .join': function (event) {
+    var roomId = $(event.target).closest('li').attr('data-room-id');
+    joinRoom(roomId);
+    event.preventDefault();
+  }
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -787,3 +826,54 @@ var toCardObj = function(cardStr) {
   }
   return cardObj;
 };
+
+
+var sortHand = function(hand) {
+  var sortedHand = hand.sort(cardSortFunction);
+  return sortedHand;
+}
+
+var cardSortFunction = function(card1, card2) {
+  return (getValueWithSuit(card1) - getValueWithSuit(card2));
+}
+
+var getValueWithSuit = function(cardLabel) {
+  var value, suit;
+  if (cardLabel.length == 3) {
+    value = 10;
+    suit = cardLabel[2];
+  } else {
+    suit = cardLabel[1];
+    switch (cardLabel[0]) {
+      case '2':
+        value = 15;
+        break;
+      case 'A':
+        value = 14;
+        break;
+      case 'K':
+        value = 13;
+        break;
+      case 'Q':
+        value = 12;
+        break;
+      case 'J':
+        value = 11;
+        break;
+      default:
+        value = parseInt(cardLabel[0]);
+        break;
+    }
+  }
+  if (suit === 'C') {
+    value += .1;
+  } else if (suit === 'D') {
+    value += .2;
+  } else if (suit === 'H') {
+    value += .3;
+  } else if (suit === 'S') {
+    value += .4;
+  }
+  return value;
+}
+

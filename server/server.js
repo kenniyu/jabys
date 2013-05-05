@@ -135,6 +135,24 @@ Meteor.methods({
     Rooms.update({'_id': roomId}, {$set: {'ready': state}});
   },
 
+  getOthersHand: function(userId, gameId) {
+    var hand,
+        numCards,
+        cards = [];
+
+    // get the hand
+    hand = Hands.findOne({'user': userId, 'game': gameId});
+    if (hand) {
+      numCards = hand.cards.length;
+      for (var i = 0; i < numCards; i++) {
+        cards.push({});
+      }
+    }
+    console.log('not my hand');
+    console.log(cards);
+    return cards;
+  },
+
   getHand: function(userId, gameId) {
     var hand,
         numCards,
@@ -149,17 +167,18 @@ Meteor.methods({
           cards.push({});
         }
       }
+      console.log('not my hand');
+      console.log(cards);
       return cards;
     } else {
       hand = Hands.findOne({'user': userId, 'game': gameId});
-      console.log('my user id = ' + Meteor.userId());
-      console.log('i want ' + userId + ' hand ');
       if (hand) {
         numCards = hand.cards.length;
         for (var i = 0; i < numCards; i++) {
           cards.push(Meteor.call('toCardObj', hand.cards[i]));
         }
       }
+      console.log('i want my hand');
       console.log(cards);
       return cards;
     }
