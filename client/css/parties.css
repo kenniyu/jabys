@@ -3,6 +3,32 @@ header {
   padding: 20px;
 }
 
+  header h1 .game-state {
+    display: inline-block;
+    margin-left: 20px;
+    border-radius: 5px;
+    color: #fff;
+    background: #fccd4d;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 0 #fff;
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+  }
+
+  header h1 .game-state.playing {
+    background: #61c419;
+  }
+
+
+/* Rooms */
+.room.selected {
+  background: rgba(150, 200, 0, .3);
+}
+
+.room.selected:hover {
+  background: rgba(150, 200, 0, .5);
+}
 
 .new-room {
   text-align: center;
@@ -21,6 +47,26 @@ header {
   border-radius: 5px;
   box-shadow: 0 1px 0 #fff;
 }
+
+  .game-options .player .state {
+    display: inline-block;
+    line-height: 20px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    background: #fccd4d;
+  }
+
+  .player .state.ready {
+    background: #61c419;
+  }
+
+  .game-options .player .display-name {
+    display: inline-block;
+    line-height: 20px;
+    margin-left: 5px;
+  }
 
   .game-options h2 {
     text-align: center;
@@ -91,6 +137,24 @@ header {
     box-shadow: 0 1px 0 #fff;
   }
 
+    .current-pile {
+      position: absolute;
+      border: 1px solid #ddd;
+      top: 130px;
+      left: 150px;
+      width: 260px;
+      height: 170px;
+    }
+
+    .discard-pile {
+      position: absolute;
+      border: 1px solid #ddd;
+      top: 130px;
+      left: 420px;
+      width: 130px;
+      height: 170px;
+    }
+
     .player-slot .cards-container {
       position: relative;
       left: 165px;
@@ -122,6 +186,12 @@ header {
       -webkit-transform:rotate(-90deg);
     }
 
+    .game-controls {
+      position: absolute;
+      top: 310px;
+      left: 150px;
+    }
+
 
 /* Card ********************************************/
 .black {
@@ -145,6 +215,10 @@ header {
   -webkit-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
   -moz-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
   box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+  -webkit-transition: all 0.5s ease;
+}
+.card.selected {
+  margin-top: -20px;
 }
 
 .front {

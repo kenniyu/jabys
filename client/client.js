@@ -3,6 +3,8 @@
 Meteor.subscribe("directory");
 Meteor.subscribe("rooms");
 Meteor.subscribe("messages");
+Meteor.subscribe("games");
+Meteor.subscribe("gameHistory");
 
 // If no room selected, select one.
 Meteor.startup(function () {
@@ -25,6 +27,52 @@ Template.roomTemplate.messages = function () {
   return messages;
 };
 
+Template.roomTemplate.playerReadyState = function () {
+  var userId = this._id,
+      roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId});
+  if (_.contains(room.readyPlayers, userId)) {
+    return 'ready';
+  } else {
+    return 'waiting';
+  }
+};
+
+Template.roomTemplate.readyBtn = function() {
+  var roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId}),
+      readyState = room.ready,
+      existingGame = Games.findOne({'room': roomId, 'state': 'playing'});
+
+  return room.allUsers.length > 1 && !existingGame;
+};
+
+Template.roomTemplate.readied = function() {
+  var roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId}),
+      userId = Meteor.userId();
+  return _.contains(room.readyPlayers, userId);
+};
+
+Template.roomTemplate.myCards = function() {
+  var roomId = Session.get('currentRoom'),
+      userId = Meteor.userId(),
+      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      gameId,
+      hand;
+
+  if (game) {
+    gameId = game._id;
+    hand = Meteor.call('getHand', userId, gameId);
+    console.log(gameId);
+    console.log(hand);
+    return hand;
+  } else {
+    console.log('no game yet');
+    return [];
+  }
+};
+
 Template.roomTemplate.events({
   'keyup .chat-input': function (event) {
     var keyCode = event.keyCode,
@@ -35,7 +83,22 @@ Template.roomTemplate.events({
       $(event.target).val('');
     }
     event.preventDefault();
+  },
+
+  'click .card': function(event) {
+    var $card = $(event.target).closest('.card');
+    $card.toggleClass('selected');
+    event.preventDefault();
+  },
+
+  'click .ready': function(event) {
+    var $readyBtn = $(event.target).closest('.ready');
+    if (!$readyBtn.hasClass('disabled')) {
+      setPlayerReady();
+    }
+    event.preventDefault();
   }
+
 });
 
 Template.roomTemplate.room = function () {
@@ -43,7 +106,7 @@ Template.roomTemplate.room = function () {
 };
 
 Template.roomTemplate.allUsers = function() {
-  var roomId = Session.get('currentRoom')._id,
+  var roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId}),
       allUsers;
 
@@ -68,7 +131,11 @@ Template.roomTemplate.displayName = function () {
 };
 
 Template.allRoomsTemplate.rooms = function () {
-  return Rooms.find();
+  var rooms = Rooms.find(
+    {},
+    {sort: {title: 1} }
+  );
+  return rooms;
 };
 
 Template.allRoomsTemplate.anyRooms = function () {
@@ -84,6 +151,17 @@ Template.allRoomsTemplate.creatorName = function () {
 
 Template.allRoomsTemplate.canRemove = function () {
   return this.owner === Meteor.userId();
+};
+
+Template.allRoomsTemplate.inRoom = function () {
+  return _.contains(this.allUsers, Meteor.userId());
+};
+
+Template.allRoomsTemplate.numUsers = function () {
+  if (this && this.allUsers) {
+    return this.allUsers.length || 0;
+  }
+  return '0';
 };
 
 Template.allRoomsTemplate.events({
@@ -216,62 +294,43 @@ Template.map.destroyed = function () {
 ///////////////////////////////////////////////////////////////////////////////
 // Create Room dialog
 
-var submitChat = function(message) {
-  var room = Session.get("currentRoom"),
-      userId = Meteor.userId(),
-      user = getUser(userId);
 
-  Meteor.call('createMessage', {
-    user: user,
-    room: room,
-    message: message
-  }, function (error, room) {
-    if (! error) {
-      console.log('message sent!');
-    }
-  });
-};
+/* Templates */
 
-var openCreateDialog = function () {
-  Session.set("createError", null);
-  Session.set("currentRoom", null);
-  Session.set("showCreateDialog", true);
-};
-
-var joinRoom = function(roomId) {
-  var room = Rooms.findOne({'_id': roomId});
-
-  Meteor.call('addUserToRoom', Meteor.userId(), roomId);
-  Session.set("currentRoom", room);
-};
-
-var leaveRoom = function() {
-  var roomId = Session.get('currentRoom')._id,
-      room = Rooms.findOne({'_id': roomId}),
-      userId = Meteor.userId();
-
-  Session.set('currentRoom', null);
-};
-
-var getUser = function(userId) {
-  var user = Meteor.users.findOne({'_id': userId});
-  return user;
-}
-
+/* Page */
 Template.page.showCreateDialog = function () {
-  return Session.get("showCreateDialog");
+  return Session.get('showCreateDialog');
 };
 
 Template.page.getCurrentChats = function () {
-  return Session.get("showCreateDialog");
+  return Session.get('showCreateDialog');
 };
 
 Template.page.currentRoom = function() {
-  return Session.get("currentRoom");
+  return Session.get('currentRoom');
 };
 
+/* Header */
 Template.header.currentRoom = function() {
-  return Session.get("currentRoom");
+  return Session.get('currentRoom');
+};
+
+Template.header.gameState = function() {
+  var roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId}),
+      game = Games.findOne({'room': roomId, 'state': 'playing'});
+
+  if (game) {
+    return game.state;
+  } else {
+    return 'waiting';
+  }
+};
+
+Template.header.roomTitle = function() {
+  var roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId});
+  return room.title;
 };
 
 Template.header.events({
@@ -283,8 +342,8 @@ Template.header.events({
 
 Template.createDialog.events({
   'click .save': function (event, template) {
-    var title = template.find(".title").value;
-    var description = template.find(".description").value;
+    var title = template.find('.title').value;
+    var description = template.find('.description').value;
     /*
     var public = ! template.find(".private").checked;
    */
@@ -298,7 +357,8 @@ Template.createDialog.events({
       }, function (error, room) {
         if (! error) {
           Session.set("selected", room);
-          Session.set("currentRoom", room);
+          joinRoom(room);
+          //Session.set("currentRoom", room);
         }
       });
       Session.set("showCreateDialog", false);
@@ -352,3 +412,142 @@ Template.inviteDialog.displayName = function () {
   return displayName(this);
 };
 */
+
+/* Sidebar actions */
+var submitChat = function(message) {
+  var room = Session.get("currentRoom"),
+      userId = Meteor.userId(),
+      user = getUser(userId);
+
+  Meteor.call('createMessage', {
+    user: user,
+    room: room,
+    message: message
+  }, function (error, room) {
+    if (! error) {
+      console.log('message sent!');
+    }
+  });
+};
+
+/* Helper methods */
+var openCreateDialog = function () {
+  Session.set("createError", null);
+  Session.set("currentRoom", null);
+  Session.set("showCreateDialog", true);
+};
+
+var joinRoom = function(roomId) {
+  var room,
+      userId = Meteor.userId(),
+      prevRoom = Rooms.findOne({ allUsers: {$regex : userId}});
+
+  if (prevRoom) {
+    Meteor.call('removeUserFromRoom', userId, prevRoom._id);
+    leaveRoomCb(prevRoom._id);
+  }
+
+  room = Rooms.findOne({'_id': roomId});
+  Meteor.call('addUserToRoom', Meteor.userId(), roomId);
+  Session.set('currentRoom', room._id);
+  joinRoomCb(roomId);
+};
+
+var leaveRoom = function(urlNavigate) {
+  if (Session.get('currentRoom')) {
+    var roomId = Session.get('currentRoom'),
+        room = Rooms.findOne({'_id': roomId}),
+        userId = Meteor.userId(),
+        doLeave;
+
+    doLeave = confirm("You are about to leave this room. If you are in the middle of a game, you will lose.\n\nAre you sure you want to leave this room?");
+
+    if (doLeave) {
+      Meteor.call('removeUserFromRoom', Meteor.userId(), roomId);
+      Session.set('currentRoom', null);
+      leaveRoomCb(roomId);
+    }
+  }
+};
+
+var getUser = function(userId) {
+  var user = Meteor.users.findOne({'_id': userId});
+  return user;
+};
+
+var leaveRoomCb = function(roomId) {
+  var room = Rooms.findOne({'_id': roomId}),
+      game,
+      userId = Meteor.userId();
+  if (!room)
+    return
+
+  game = Games.findOne({'room': roomId, 'state': 'playing'});
+  if (game) {
+    // was there an ongoing game this player was a part of?
+    if (_.contains(game.players, userId)) {
+      // remove leaver from players list
+      Meteor.call('removeUserFromGame', userId, game._id);
+    }
+  }
+
+  // refresh room
+  room = Rooms.findOne({'_id': roomId});
+  if (room.allUsers.length <= 1) {
+    // there's only 1 person left. if theres a game, end it
+    if (game) {
+      Meteor.call('setGameState', game._id, 'finished');
+      Meteor.call('setGamePlace', room.allUsers[0]);
+      Meteor.call('clearReadyPlayers', roomId);
+      Session.set('currentGame', null);
+    }
+    Meteor.call('setRoomReady', roomId, false);
+  } else {
+    Meteor.call('setRoomReady', roomId, true);
+  }
+}
+
+var joinRoomCb = function(roomId) {
+  var room = Rooms.findOne({'_id': roomId}),
+      game;
+  if (room) {
+    existingGame = Games.findOne({'room': roomId, 'state': 'playing'});
+    if (existingGame) {
+      // game exists, check game state
+      // room not ready for a game, b/c one currently exists
+      Meteor.call('setRoomReady', roomId, false);
+    } else {
+      // no existing game, simple check of # people in room
+      if (room.allUsers.length >= 2) {
+        Meteor.call('setRoomReady', roomId, true);
+      } else {
+        Meteor.call('setRoomReady', roomId, false);
+      }
+    }
+  }
+};
+
+
+var setPlayerReady = function() {
+  var roomId  = Session.get('currentRoom'),
+      room    = Rooms.findOne({'_id': roomId}),
+      userId  = Meteor.userId();
+  if (_.contains(room.readyPlayers, userId)) {
+    // this player already readied up
+    console.log('Refusing to ready again. Already ready.');
+  } else {
+    Meteor.call('setRoomPlayerReady', userId, roomId);
+    // refetch the room
+    room = Rooms.findOne({'_id': roomId});
+    if (room.ready && room.readyPlayers.length === room.allUsers.length) {
+      Meteor.call('startGame', roomId, function (error, game) {
+        if (! error) {
+          console.log(game);
+          Session.set('currentGame', game);
+          // after game succesfully starts, deal everyone their hands
+          Meteor.call('dealHands', game);
+        }
+      });
+    }
+  }
+};
