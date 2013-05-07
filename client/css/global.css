@@ -7,6 +7,7 @@ body {
   font-weight: 400;
   font-size: 14px;
   height: 100%;
+  text-shadow: 0 1px 0 #fff;
 }
 
 .container, .column, .columns {
@@ -255,4 +256,5 @@ a.btn {
 /* Sections **********************************************/
 .tier {
   padding: 30px 0;
+  position: relative;
 }

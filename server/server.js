@@ -22,6 +22,9 @@ Meteor.publish('hands', function() {
   });
 });
 
+Meteor.publish('numCards', function() {
+  return NumCards.find({});
+});
 
 var Jabys = {
   'CONSTANTS': {
@@ -46,7 +49,11 @@ Meteor.methods({
         numPlayers = players.length,
         numCardsPerPerson,
         playerId,
-        playerCards;
+        playerCards,
+        minCardValue = 99,
+        minCardLabel,
+        tempValue,
+        startingPlayer;
 
     if (players.length < 4) {
       numCardsPerPerson = Jabys['CONSTANTS']['GAME']['DEALING']['LT_4_PLAYERS'];
@@ -56,14 +63,34 @@ Meteor.methods({
     console.log(numPlayers + ' players');
 
     for (var i = 0; i < numPlayers; i++) {
+      console.log('index = ' + i);
       playerId = players[i];
 
       playerCards = _.first(shuffledDeck, numCardsPerPerson);
       console.log('player ' + playerId+' has cards:');
       console.log(playerCards);
 
+      // create this players actual hand
       Meteor.call('createHand', playerId, gameId, playerCards, function(error, data) {
-        console.log('done creating hand for player ' + playerId);
+        // if hand contains lowest value so far,
+        // record this user as the starting player
+        for (var j = 0; j < playerCards.length; j++) {
+          tempValue = getValue(playerCards[j], true);
+          if (tempValue < minCardValue) {
+            minCardLabel = playerCards[j];
+            minCardValue = tempValue;
+            startingPlayer = playerId;
+          }
+        }
+        if (i === numPlayers - 1) {
+          // set starting player
+          Games.update({'_id': gameId}, {$set: {'currentPlayer': startingPlayer}});
+          console.log('player ' + playerId + ' is starting with lowest card ' + minCardLabel);
+        }
+      });
+      // create this players card count collection
+      Meteor.call('createNumCards', playerId, gameId, playerCards.length, function(error, data) {
+        console.log('done creating numcards for player ' + playerId);
       });
       shuffledDeck = _.difference(shuffledDeck, playerCards);
     }
@@ -118,7 +145,8 @@ Meteor.methods({
       currentPlayer: null,
       discardPile: [],
       currentPile: [],
-      places: []
+      places: [],
+      turns: 0
     });
   },
 
@@ -129,6 +157,7 @@ Meteor.methods({
       'cards': cards
     });
   },
+
 
   setRoomReady: function(roomId, state) {
     var room = Rooms.findOne({'_id': roomId});
@@ -182,97 +211,387 @@ Meteor.methods({
       console.log(cards);
       return cards;
     }
-  }
-
-
-
-  /*
-  start_new_game: function (evt) {
-    /* create a new game w/ fresh board
-    var game_id = Games.insert({board: new_board(), clock: 120});
-
-    /* move everyone who is ready in the lobby to the game
-    Players.update(
-      {game_id: null, idle: false, name: {$ne: ''}},
-      {$set: {game_id: game_id}},
-      {multi: true}
-    );
-
-    /* Save a record of who is in the game, so when they leave we can
-    *      still show them.
-    var p = Players.find(
-      {game_id: game_id},
-      {fields: {_id: true, name: true}}
-    ).fetch();
-    Games.update(
-      {_id: game_id},
-      {$set: {players: p}}
-    );
-
-
-    /* wind down the game clock
-    var clock = 120;
-    var interval = Meteor.setInterval(function () {
-      clock -= 1;
-      Games.update(
-        game_id,
-       {$set: {clock: clock}}
-      );
-
-      /* end of game
-      if (clock === 0) {
-        /* stop the clock
-        Meteor.clearInterval(interval);
-
-        /* declare zero or more winners
-        var scores = {};
-
-        Words.find({game_id: game_id}).forEach(function (word) {
-          if (!scores[word.player_id])
-          scores[word.player_id] = 0;
-          scores[word.player_id] += word.score;
-        });
-
-        var high_score = _.max(scores);
-        var winners = [];
-
-        _.each(scores, function (score, player_id) {
-          if (score === high_score)
-          winners.push(player_id);
-        });
-
-        Games.update(
-          game_id,
-          {$set: {winners: winners}}
-        );
-      }
-    }, 1000);
-
-    return game_id;
   },
 
+  makePassMove: function(gameId) {
+    var game = Games.findOne({'_id': gameId}),
+        userId = Meteor.userId(),
+        players,
+        numPlayers,
+        playerIndex,
+        nextPlayerId,
+        numTurns;
 
-  keepalive: function (player_id) {
-    Players.update({_id: player_id},
-    {$set: {last_keepalive: (new Date()).getTime(),
-    idle: false}});
+    if (game) {
+      if (game.currentPlayer === userId) {
+        players = game.players;
+        numPlayers = players.length;
+        numTurns = game.turns;
+        if (numTurns === 0)
+          // cannot pass on first move
+          return;
+
+        playerIndex = players.indexOf(userId);
+        nextPlayerId = players[(playerIndex+1)%numPlayers];
+        Games.update(
+          {'_id': gameId},
+          {$set: {'currentPlayer': nextPlayerId, 'turns': numTurns+1 } }
+        );
+      }
+    }
+  },
+
+  makeMove: function(gameId, hand) {
+    console.log('making a move');
+    var game = Games.findOne({'_id': gameId}),
+        userId = Meteor.userId(),
+        players, playerIndex, nextPlayerId, numPlayers,
+        cards;
+
+    if (!game)
+      return false;
+    console.log('game exists');
+
+    // sort the hand first
+    cards = hand.sort(cardSortFunction);
+
+    console.log('checking rules');
+
+    // check hand against rules
+    checkRules(game, cards);
   }
- */
 });
 
 
-/*
-Meteor.setInterval(function () {
-var now = (new Date()).getTime();
-var idle_threshold = now - 70*1000;
-var remove_threshold = now - 60*60*1000;
+/* Game Logic */
+var checkRules = function(game, cards) {
+  var numTurns = game.turns,
+      userId = Meteor.userId(),
+      hand = Hands.findOne({'game': game._id, 'user': userId}),
+      allCards,
+      nextPlayerId, playerIndex, numPlayers,
+      prevHand, compare,
+      updateGame = false;
 
-Players.update({last_keepalive: {$lt: idle_threshold}},
-{$set: {idle: true}});
+  /* Sanity check */
+  if (!hand)
+    return false;
 
-/* XXX need to deal with people coming back!
-*  Players.remove({$lt: {last_keepalive: remove_threshold}});
+  if (!cards || cards.length === 0)
+    // a hand must be played
+    return false;
 
-}, 30*1000);
-*/
+  /* Pull some info from game */
+  allCards = hand.cards;
+  players = game.players;
+  numPlayers = players.length;
+  playerIndex = players.indexOf(userId);
+  numTurns = game.turns;
+  currentPile = game.currentPile;
 
+
+  if (numTurns === 0) {
+    // first player MUST make a move with the LOWEST card
+    if (!_.contains(cards, getLowestCard(game)))
+      return false;
+  }
+
+  // check that this hand is in the current players hand:
+  if (_.intersection(allCards, cards).length !== cards.length)
+    return false;
+
+  // sanity check that the hand is valid
+  if (!(isValidLength(cards) && isValidCombo(cards)))
+    return false;
+
+  if (currentPile.length === 0) {
+    // empty current pile, can play any valid combo
+    // valid combo, add to current pile
+    updateGame = true;
+  } else {
+    // there was a hand played before this
+    prevHand = _.last(currentPile);
+    compare = compareToHand(prevHand, cards);
+    if (compare)
+      updateGame = true;
+  }
+
+  console.log('**********************');
+  console.log(players);
+  console.log(playerIndex);
+  console.log(userId);
+  console.log(nextPlayerId);
+  console.log('**********************');
+
+  // update the game state, pull cards out of the players hand
+  if (updateGame) {
+    nextPlayerId = players[(playerIndex+1)%numPlayers];
+    Games.update(
+      {'_id': game._id},
+      {$push: {'currentPile': cards}}
+    );
+    Games.update(
+      {'_id': game._id},
+      {$set: {'turns': numTurns + 1, 'currentPlayer': nextPlayerId}}
+    );
+    Hands.update(
+      {'user': userId, 'game': game._id},
+      {$pull: {'cards': {$in: cards}}}
+    );
+  }
+  return true;
+};
+
+var isValidLength = function(cards) {
+  var validLengths = [1,2,3,5];
+  return _.contains(validLengths, cards.length);
+}
+
+var isValidCombo = function(cards) {
+  console.log('checking combo:::::::');
+  console.log(cards);
+  var numCards = cards.length,
+      isValid = false;;
+  switch (numCards) {
+    case 1:
+      isValid = true;
+      break;
+    case 2:
+      var val1 = getValue(cards[0]);
+      var val2 = getValue(cards[1]);
+      isValid = (val1 === val2);
+      break;
+    case 5:
+      isValid = (isStraight(cards) || isFullHouse(cards) || isFourKind(cards));
+      break;
+  }
+  return isValid;
+};
+
+
+
+var getLowestCard = function(game) {
+  var players = game.players,
+      hands = Hands.find({'game': game._id}).fetch(),
+      cards;
+
+  cards = _.map(hands, function(handObj) { return handObj.cards; });
+  cards = _.flatten(cards);
+  console.log(cards);
+  return (cards.sort(cardSortFunction))[0];
+}
+
+/* Card Utility Functions */
+var sortHand = function(hand) {
+  var sortedHand = hand.sort(cardSortFunction);
+  return sortedHand;
+};
+
+var cardSortFunction = function(card1, card2) {
+  return (getValue(card1, true) - getValue(card2, true));
+};
+
+var getValue = function(cardLabel, suited) {
+  var value, suit;
+  if (cardLabel.length == 3) {
+    value = 10;
+    suit = cardLabel[2];
+  } else {
+    suit = cardLabel[1];
+    switch (cardLabel[0]) {
+      case '2':
+        value = 15;
+        break;
+      case 'A':
+        value = 14;
+        break;
+      case 'K':
+        value = 13;
+        break;
+      case 'Q':
+        value = 12;
+        break;
+      case 'J':
+        value = 11;
+        break;
+      default:
+        value = parseInt(cardLabel[0]);
+        break;
+    }
+  }
+
+  if (suited) {
+    if (suit === 'C') {
+      value += .1;
+    } else if (suit === 'D') {
+      value += .2;
+    } else if (suit === 'H') {
+      value += .3;
+    } else if (suit === 'S') {
+      value += .4;
+    }
+  }
+  console.log('for ' + cardLabel + ': value = ' + value);
+  return value;
+};
+
+var isStraight = function(cards) {
+  if ( (getValue(cards[0]) == getValue(cards[1]) - 1)
+    && (getValue(cards[0]) == getValue(cards[2]) - 2)
+    && (getValue(cards[0]) == getValue(cards[3]) - 3)
+    && (getValue(cards[0]) == getValue(cards[4]) - 4) ) {
+    return true;
+  }
+  // for A 2 3 4 5...
+  // else if (getValue(hand[0]) == 3 && getValue(hand[1]) == 4 && getValue(hand[2]) == 5 && getValue(hand[3]) == 14 && getValue(hand[4]) == 15){
+  //  return true;
+  // }
+  // for 2 3 4 5 6...
+  // else if (getValue(hand[0]) == 3 && getValue(hand[1]) == 4 && getValue(hand[2]) == 5 && getValue(hand[3]) == 6 && getValue(hand[4]) == 15){
+  //    return true;
+  //  }
+  //return false;
+  //}
+};
+
+var isFullHouse = function(cards) {
+  var cardHash = {},
+      numKeys;
+
+  cardHash = _.groupBy(cards, function(card) {
+    return getValue(card);
+  });
+  numKeys = _.keys(cardHash);
+
+  if (numKeys === 2) {
+    if (_.values(cardHash)[0].length === 2 || _.values(cardHash)[0].length === 3) {
+      return true;
+    }
+  }
+  return false;
+};
+
+var isFourKind = function(hand) {
+  var cardHash = {},
+      numKeys;
+
+  cardHash = _.groupBy(cards, function(card) {
+    return getValue(card);
+  });
+  numKeys = _.keys(cardHash);
+
+  if (numKeys === 2) {
+    if (_.values(cardHash)[0].length === 1 || _.values(cardHash)[0].length === 4) {
+      return true;
+    }
+  }
+  return false;
+};
+
+var compareToHand = function(prevHand, newHand) {
+  console.log('compareToHand');
+  // check hands have equal length
+  if (!isValidLength(newHand) || prevHand.length != newHand.length)
+    return false;
+
+  // then check values
+  if (true) {//gameState["jackCounter"] == 0){
+    if (getHandValue(newHand) > getHandValue(prevHand)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  else {
+    // there is a jack, so return 1 if the new hand is lower
+    if (isFullHouse(prevHand)) {
+      // must play a lower fullhouse
+      if (isFullHouse(newHand) && (getHandValue(newHand) < getHandValue(prevHand))) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    else if (isFourKind(prevHand)) {
+      if (isFourKind(newHand) && (getHandValue(newHand) < getHandValue(prevHand))) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    else {
+      if (getHandValue(newHand) < getHandValue(prevHand)) {
+        return true;
+      } else{
+        return false;
+      }
+    }
+  }
+};
+
+var getHandValue = function(cards) {
+  var sum = 0;
+  switch (cards.length){
+    case 1:
+      sum = getValue(cards[0]);
+      break;
+    case 2:
+      _.each(cards, function(card) {
+        sum += getValue(card);
+      });
+      break;
+    case 5:
+      if (isStraight(cards)) {
+        sum = getStraightValue(cards);
+      }
+      else if (isFullHouse(cards)) {
+        sum = 100 + getTripletValue(cards);
+      }
+      else if (isFourKind(cards)) {
+        sum = 1000 + getFourKindValue(cards);
+      }
+      break;
+  }
+  return sum;
+};
+
+var getStraightValue = function(cards) {
+  console.log('getStraightValue');
+  var sum = 0;
+  _.each(cards, function(card) {
+    sum += getValue(card);
+  });
+  return sum;
+};
+
+var getTripletValue = function(cards) {
+  var cardHash = {},
+      numKeys;
+
+  cardHash = _.groupBy(cards, function(card) {
+    return getValue(card);
+  });
+  numKeys = _.keys(cardHash);
+  for (var key in cardHash) {
+    if (cardHash[key].length === 3) {
+      return 3*key;
+    }
+  }
+  return 0;
+};
+
+var getFourKindValue = function(cards) {
+  var cardHash = {},
+      numKeys;
+
+  cardHash = _.groupBy(cards, function(card) {
+    return getValue(card);
+  });
+  numKeys = _.keys(cardHash);
+  for (var key in cardHash) {
+    if (cardHash[key].length === 4) {
+      return 4*key;
+    }
+  }
+  return 0;
+}

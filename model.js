@@ -16,6 +16,7 @@ Messages = new Meteor.Collection("messages");
 Games = new Meteor.Collection("games");
 GameHistory = new Meteor.Collection("gameHistory");
 Hands = new Meteor.Collection("hands");
+NumCards = new Meteor.Collection("numCards");
 
 Messages.allow({
   insert: function (userId, room, message) {
@@ -99,6 +100,19 @@ Hands.allow({
   },
   remove: function (userId, hand) {
     // cannot remove from history
+    return false;
+  }
+});
+
+NumCards.allow({
+  insert: function (userId, numCards) {
+    return false; // no cowboy inserts -- use createParty method
+  },
+  update: function (userId, numCards) {
+    if (userId !== numCards.user)
+      return false; // not the owner
+  },
+  remove: function (userId, numCards) {
     return false;
   }
 });
@@ -210,10 +224,22 @@ Meteor.methods({
         readyPlayers: userId
       } }
     );
+  },
+
+  createNumCards: function(userId, gameId, numCards) {
+    var game = Games.findOne({'_id': gameId}),
+        existingNumCards;
+    if (game) {
+      existingNumCards = NumCards.findOne({'user': userId, 'game': gameId});
+      if (!existingNumCards) {
+        return NumCards.insert({
+          'user': userId,
+          'game': gameId,
+          'cards': numCards
+        });
+      }
+    }
   }
-
-
-
 });
 
 ///////////////////////////////////////////////////////////////////////////////

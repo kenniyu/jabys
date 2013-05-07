@@ -75,7 +75,7 @@
 <section class="tier block-content">
   <div class="container">
 
-    <div class="twelve columns">
+    <div class="sixteen columns">
       <section class="game-container">
 
         <!--
@@ -88,8 +88,13 @@
         <div class="discard-pile">
         </div>
 
-        <div class="player-slot top">
-          <div class="profile"></div>
+        <div class="player-slot top" data-user-id="{{playerId "top"}}">
+          <div class="profile">
+            <figure class="photo"></figure>
+            <p class="name {{isCurrentPlayer "top"}}">
+            {{ playerName "top" }}
+            </p>
+          </div>
           <div class="cards-container">
             {{#each topCards}}
               {{{displayCard "dummy"}}}
@@ -97,16 +102,25 @@
           </div>
         </div>
 
-        <div class="player-slot right">
-          <div class="profile"></div>
+        <div class="player-slot right" data-user-id="{{playerId "top"}}">
+          <div class="profile">
+            <figure class="photo"></figure>
+            <p class="name {{isCurrentPlayer "right"}}">
+            {{ playerName "right" }}
+            </p>
+          </div>
           <div class="cards-container">
             {{#each rightCards}}
+              {{{displayCard "dummy"}}}
             {{/each}}
           </div>
         </div>
 
         <div class="player-slot bottom">
-          <div class="profile"></div>
+          <div class="profile">
+            <figure class="photo"></figure>
+            <p class="name {{isCurrentPlayer "bottom"}}">me</p>
+          </div>
           <div class="cards-container">
             {{#each myCards}}
               {{{displayCard label}}}
@@ -114,10 +128,16 @@
           </div>
         </div>
 
-        <div class="player-slot left">
-          <div class="profile"></div>
+        <div class="player-slot left" data-user-id="{{playerId "left"}}">
+          <div class="profile">
+            <figure class="photo"></figure>
+            <p class="name {{isCurrentPlayer "left"}}">
+            {{ playerName "left" }}
+            </p>
+          </div>
           <div class="cards-container">
             {{#each leftCards}}
+              {{{displayCard "dummy"}}}
             {{/each}}
           </div>
         </div>
@@ -130,46 +150,55 @@
               <a href="#" class="sm btn ready blue">Ready Up!</a>
             {{/if}}
           {{/if}}
+
+          {{#if myTurn}}
+            <a href="#" class="sm btn make-move green">Make Move</a>
+            <a href="#" class="sm btn pass-move blue">Pass</a>
+          {{/if}}
+
+          {{#if gameStatus}}
+          <div class="game-status">{{gameStatus}}</div>
+          {{/if}}
+          </div>
         </div>
 
       </section>
     </div>
-
-    <div class="four columns">
-      <aside class="game-options">
-        <div class="players-wrapper">
-          <h2 class="heading players">Noobs/Pros</h2>
-          <ul class="players">
-            {{#each allUsers}}
-            <li class="player">
-            <span class="state {{ playerReadyState }}"></span>
-              <span class="display-name">{{ displayName }}</span>
-            </li>
-            {{/each}}
-          </ul>
-        </div>
-        <div class="chat-wrapper">
-          <h2 class="heading chat">Trash Talk</h2>
-          <ul class="chat-messages">
-          {{#if messages}}
-            {{#each messages}}
-            <li class="message">
-              <span class="display-name">{{ displayName }}</span>:
-              <span class="text">{{ message }}</span>
-            </li>
-            {{/each}}
-          {{else}}
-            <li>No messages</li>
-          {{/if}}
-          </ul>
-          <div class="chat-bar">
-            <input type="text" class="chat-input" placeholder="type shit here"/>
-          </div>
-        </div>
-      </aside>
-    </div>
   </div>
+
+  <aside class="game-options">
+    <div class="players-wrapper">
+      <h2 class="heading players">Noobs/Pros</h2>
+      <ul class="players">
+        {{#each allUsers}}
+        <li class="player">
+        <span class="state {{ playerReadyState }}"></span>
+          <span class="display-name">{{ displayName }}</span>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    <div class="chat-wrapper">
+      <h2 class="heading chat">Trash Talk</h2>
+      <ul class="chat-messages">
+      {{#if messages}}
+        {{#each messages}}
+        <li class="message">
+          <span class="display-name">{{ displayName }}</span>:
+          <span class="text">{{ message }}</span>
+        </li>
+        {{/each}}
+      {{else}}
+        <li>No messages</li>
+      {{/if}}
+      </ul>
+      <div class="chat-bar">
+        <input type="text" class="chat-input" placeholder="type shit here"/>
+      </div>
+    </div>
+  </aside>
 </section>
+
 </template>
 
 <template name="createDialog">

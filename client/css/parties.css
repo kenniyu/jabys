@@ -46,6 +46,10 @@ header {
   border: 1px solid #ddd;
   border-radius: 5px;
   box-shadow: 0 1px 0 #fff;
+  position: absolute;
+  width: 250px;
+  right: 0;
+  top: 0;
 }
 
   .game-options .player .state {
@@ -83,7 +87,7 @@ header {
 
   .chat-messages {
     padding: 0 1px;
-    max-height: 400px;
+    max-height: 270px;
     overflow-y: auto;
     overflow-x: hidden;
     word-wrap: break-word;
@@ -122,24 +126,18 @@ header {
 /* Game container */
 .game-container {
   position: relative;
-  border-radius: 5px;
-  border: 1px solid #ddd;
   height: 469px;
-  box-shadow: 0 1px 0 #fff;
 }
 
   .game-container .player-slot {
     position: absolute;
     height: 100px;
     width: 400px;
-    border: 1px solid #ccc;
     border-radius: 5px;
-    box-shadow: 0 1px 0 #fff;
   }
 
     .current-pile {
       position: absolute;
-      border: 1px solid #ddd;
       top: 130px;
       left: 150px;
       width: 260px;
@@ -148,7 +146,6 @@ header {
 
     .discard-pile {
       position: absolute;
-      border: 1px solid #ddd;
       top: 130px;
       left: 420px;
       width: 130px;
@@ -162,34 +159,84 @@ header {
 
     .player-slot.top {
       top: 20px;
-      left: 150px;
+      left: 265px;
     }
 
     .player-slot.bottom {
       bottom: 20px;
-      left: 150px;
+      left: 265px;
     }
 
     .player-slot.left {
-      left: -130px;
+      left: -40px;
       top: 185px;
-      transform:rotate(90deg);
-      -ms-transform:rotate(90deg);
-      -webkit-transform:rotate(90deg);
     }
 
     .player-slot.right {
-      right: -130px;
+      right: -30px;
       top: 185px;
+    }
+
+    .player-slot.top .cards-container {
+      transform:rotate(180deg);
+      -ms-transform:rotate(180deg);
+      -webkit-transform:rotate(180deg);
+      left: -162px;
+      top: 100px;
+    }
+
+    .player-slot.left .cards-container {
+      transform:rotate(90deg);
+      -ms-transform:rotate(90deg);
+      -webkit-transform:rotate(90deg);
+      left: 0px;
+      top: 215px;
+    }
+
+    .player-slot.right .cards-container {
       transform:rotate(-90deg);
       -ms-transform:rotate(-90deg);
       -webkit-transform:rotate(-90deg);
+      left: 10px;
+      top: -115px;
     }
+
+    .player-slot .profile {
+      text-align: center;
+      position: relative;
+    }
+
+    .player-slot.bottom .profile {
+      top: 150px;
+    }
+
+    .player-slot.left .profile {
+      -webkit-transform:rotate(90deg);
+      top: 70px;
+      left: -140px;
+    }
+
+    .player-slot.right .profile {
+      -webkit-transform:rotate(-90deg);
+      top: 70px;
+      left: 150px;
+    }
+
+    .player-slot.top .profile {
+      top: -20px;
+    }
+
+    .player-slot .name.active {
+      font-weight: bold;
+    }
+
 
     .game-controls {
       position: absolute;
-      top: 310px;
+      top: 295px;
       left: 150px;
+      width: 650px;
+      text-align: center;
     }
 
 
@@ -203,8 +250,8 @@ header {
 }
 
 .card {
-  background-image: url("/images/cardback/bicycle_blue.png");
-  background-size: 100px 130px;
+  background-image: url("/cardback.png");
+  background-size: cover;
   -moz-border-radius: 5px;
   border-radius: 5px;
   border: 1px solid #333333;
@@ -215,11 +262,13 @@ header {
   -webkit-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
   -moz-box-shadow: 2px 2px 2px rgba(0,0,0,.2);
   box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+}
+
+.card.animate {
   -webkit-transition: all 0.25s ease;
 }
 
 .card.selected {
-  margin-top: -20px;
 }
 
 .front {
