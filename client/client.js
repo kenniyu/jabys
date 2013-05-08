@@ -182,6 +182,19 @@ Template.roomTemplate.myCards = function() {
   return cards;
 };
 
+Template.roomTemplate.discardPileCards = function() {
+  var roomId = Session.get('currentRoom'),
+      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      gameId,
+      discardPile;
+
+  if (game) {
+    gameId = game._id;
+    discardPile = _.flatten(game.discardPile);
+  }
+  return discardPile;
+};
+
 Template.roomTemplate.currentPileCards = function() {
   var roomId = Session.get('currentRoom'),
       userId = Meteor.userId(),

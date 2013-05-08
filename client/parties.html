@@ -98,6 +98,9 @@
           {{/each}}
         </div>
         <div class="discard-pile">
+          {{#each discardPileCards}}
+            {{{displayCard "dummy"}}}
+          {{/each}}
         </div>
 
         <div class="player-slot top" data-user-id="{{playerId "top"}}">
