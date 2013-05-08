@@ -86,6 +86,12 @@ header {
     margin-left: 5px;
   }
 
+  .game-options .player .score {
+    display: inline-block;
+    margin-left: 15px;
+    font-style: italic;
+  }
+
   .game-options h2 {
     text-align: center;
     background: #fff;
@@ -164,8 +170,8 @@ header {
 
     .discard-pile {
       position: absolute;
-      top: 160px;
-      left: 470px;
+      top: 190px;
+      left: 590px;
       width: 130px;
       height: 130px;
     }
@@ -251,11 +257,15 @@ header {
 
     .game-controls {
       position: absolute;
-      top: 295px;
+      top: 330px;
       left: 150px;
-      width: 650px;
+      width: 620px;
       text-align: center;
     }
+
+      .game-controls .btn {
+        width: 60px;
+      }
 
 
 /* Card ********************************************/

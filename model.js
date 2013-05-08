@@ -17,6 +17,7 @@ Games = new Meteor.Collection("games");
 GameHistory = new Meteor.Collection("gameHistory");
 Hands = new Meteor.Collection("hands");
 NumCards = new Meteor.Collection("numCards");
+GameScores = new Meteor.Collection("gameScores");
 
 Messages.allow({
   insert: function (userId, room, message) {
@@ -54,19 +55,8 @@ Games.allow({
     return false; // no cowboy inserts -- use createParty method
   },
   update: function (userId, game, room, fields) {
-    /*
-    if (userId !== room.owner)
-      return false; // not the owner
-
-    var allowed = ["title", "description"];
-    if (_.difference(fields, allowed).length)
-      return false; // tried to write to forbidden field
-     */
-
-    // A good improvement would be to validate the type of the new
-    // value of the field (and if a string, the length.) In the
-    // future Meteor will have a schema system to makes that easier.
-    return true;
+    // no user can update game state
+    return false;
   },
   remove: function (userId, game) {
     // No cowboy removes
@@ -117,6 +107,18 @@ NumCards.allow({
   }
 });
 
+GameScores.allow({
+  insert: function () {
+    return false; // no cowboy inserts -- use createParty method
+  },
+  update: function () {
+    return false;
+  },
+  remove: function () {
+    return false;
+  }
+});
+
 Meteor.methods({
   // options should include: title, description, public
   createRoom: function (options) {
@@ -160,9 +162,9 @@ Meteor.methods({
 
   removeUserFromGame: function(userId, gameId) {
     var game = Games.findOne({'_id': gameId});
-    return Games.update(
+    Games.update(
       {'_id': gameId},
-      {$pull: { players: userId } }
+      {$pull: { players: userId, places: userId } }
     );
   },
 

@@ -26,6 +26,10 @@ Meteor.publish('numCards', function() {
   return NumCards.find({});
 });
 
+Meteor.publish("gameScores", function () {
+  return GameScores.find({});
+});
+
 var Jabys = {
   'CONSTANTS': {
     'GAME': {
@@ -115,14 +119,42 @@ Meteor.methods({
       Meteor.call('createGame', {
         players: room.allUsers,
         room: roomId
-      }, function(error, game) {
+      }, function(error, gameId) {
         if (! error) {
           // after game successfully starts, deal everyone their hands
-          Meteor.call('dealHands', game);
+          Meteor.call('dealHands', gameId);
+          var game = Games.findOne({'_id': gameId}),
+              players = game.players;
+
+          // also create new score collections for this game's users
+          _.each(players, function(userId) {
+            Meteor.call('createGameScore', {
+              user: userId,
+              game: gameId
+            });
+          });
         }
       });
     }
   },
+
+  createGameScore: function(options) {
+    options = options || {};
+    if (!options.game)
+      throw new Meteor.Error(400, "Required parameter game missing");
+    if (!options.user)
+      throw new Meteor.Error(400, "Required parameter user missing");
+    console.log('game score inserted');
+
+    return GameScores.insert({
+      user: options.user,
+      game: options.game,
+      score: 0,
+      possessionStreak: 0,
+      possessions: 0
+    });
+  },
+
 
   createGame: function(options) {
     options = options || {};
@@ -136,6 +168,7 @@ Meteor.methods({
       state: 'playing',
       players: options.players,
       currentPlayer: null,
+      possessions: [],
       discardPile: [],
       currentPile: [],
       places: [],
@@ -299,7 +332,8 @@ var checkRules = function(game, cards) {
       allCards,
       nextPlayerId, playerIndex, numPlayers,
       prevHand, compare,
-      updateGame = false;
+      updateGame = false,
+      gameScore, possessions, prevPossessor;
 
   /* Sanity check */
   if (!hand)
@@ -365,16 +399,41 @@ var checkRules = function(game, cards) {
     } else {
       // pass everyone, same player goes again
       // move currentPile to discardPile, empty current pile
+      // possession gained by this player
+
       // refresh the game object
       game = Games.findOne({'_id': game._id});
       currentPile = game.currentPile;
+      possessions = game.possessions;
+
+      prevPossessor = _.last(possessions);
       Games.update(
         {'_id': game._id},
-        {$push: {'discardPile': currentPile}}
+        {$push: {
+          'discardPile': currentPile,
+          'possessions': userId
+        }}
       );
       Games.update(
         {'_id': game._id},
         {$set: {'currentPile': []}}
+      );
+
+      // refresh the game object
+      game = Games.findOne({'_id': game._id});
+      // update possession streak count
+      if (prevPossessor && prevPossessor !== userId) {
+        GameScores.update(
+          {'user': prevPossessor, 'game': game._id},
+          {$set: {possessionStreak: 0}}
+        );
+      }
+      GameScores.update(
+        {'user': userId, 'game': game._id},
+        {$inc: {
+          possessionStreak: 1,
+          possessions: 1
+        }}
       );
     }
 
@@ -382,8 +441,54 @@ var checkRules = function(game, cards) {
       {'user': userId, 'game': game._id},
       {$pull: {'cards': {$in: cards}}}
     );
+    hand = Hands.findOne({'game': game._id, 'user': userId});
+
+    if (hand.cards.length === 0) {
+      // this dude won, add his score
+      Games.update(
+        {'_id': game._id},
+        {$push: {'places': userId}}
+      );
+
+      analyzeScore(userId, game._id);
+
+      // check if we should end game
+      game = Games.findOne({'_id': game._id});
+      if (game.players.length - game.places.length === 1) {
+        // everyone was placed except one person
+        // game ends. loser gets nothing
+        Games.update(
+          {'_id': game._id},
+          {$set: {'state': 'finished', 'currentPlayer': null}}
+        );
+      }
+    }
   }
   return true;
+};
+
+var analyzeScore = function(userId, gameId) {
+  var game = Games.findOne({'_id': gameId}),
+      possessions,
+      score = 0,
+      streakCount = 0;
+
+  if (game) {
+    possessions = game.possessions;
+    _.each(possessions, function(possessor) {
+      if (possessor === userId) {
+        streakCount += 1;
+        score += streakCount;
+      } else {
+        streakCount = 0;
+      }
+    });
+  }
+
+  GameScores.update(
+    {'user': userId, 'game': game._id},
+    {$set: {'score': score}}
+  );
 };
 
 var canPlayHigher = function(cards) {

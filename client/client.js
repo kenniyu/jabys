@@ -7,6 +7,7 @@ Meteor.subscribe("games");
 Meteor.subscribe("gameHistory");
 Meteor.subscribe("hands");
 Meteor.subscribe("numCards");
+Meteor.subscribe("gameScores");
 
 // If no room selected, select one.
 Meteor.startup(function () {
@@ -37,6 +38,31 @@ Template.roomTemplate.playerReadyState = function () {
     return 'ready';
   } else {
     return 'waiting';
+  }
+};
+
+Template.roomTemplate.score = function () {
+  var userId = this._id,
+      roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId}),
+      game, gameId, gameScore;
+
+  if (room) {
+    game = Games.findOne({'room': roomId, 'state': 'playing'});
+    if (!game) {
+      // find the previous game
+      game = Games.findOne(
+        {'room': roomId, 'state': 'finished'},
+        {sort: {$natural: -1} }
+      );
+    }
+    if (game) {
+      gameId = game._id;
+      gameScore = GameScores.findOne({'game': gameId, 'user': userId});
+      if (gameScore) {
+        return gameScore.score;
+      }
+    }
   }
 };
 
@@ -217,7 +243,7 @@ Template.roomTemplate.currentPileCards = function() {
       _.each(hand, function(card, cardIndex) {
         handObj.push({ 'label': card, 'left': cardIndex*25 });
       });
-      currentPileObj.push({ 'hand': handObj, 'top': handIndex*30});
+      currentPileObj.push({ 'hand': handObj, 'top': (handIndex*30)%150});
     });
     return currentPileObj;
   }
@@ -579,14 +605,40 @@ Template.roomTemplate.myTurn = function() {
 
 
 var positionCards = function(cardContainer, isCurrentPile) {
-  if (isCurrentPile) {
-    $(cardContainer).find('.hand-wrapper').each(function(index, hand) {
-      var $cards = $(hand).find('.card');
-      $cards.each(function(index, item) {
-        var numCards = $cards.length,
-            rotationFactor = 7.83 * Math.pow(2.718, -0.086*numCards),
-            rotation = (index - (numCards-1)/2)*rotationFactor,
-            transY = Math.sin(rotation)/5;
+  if (cardContainer === '.discard-pile') {
+    // position discard pile like shit
+    $(cardContainer + ' .card').each(function(index, item) {
+      $(item).css({
+        'transform': 'rotate('+ (index*7) +'deg)',
+        'transform-origin': "50% " + (50 + index/1.5) + "%"
+      });
+    });
+  } else {
+    if (isCurrentPile) {
+      $(cardContainer).find('.hand-wrapper').each(function(index, hand) {
+        var $cards = $(hand).find('.card');
+        $cards.each(function(index, item) {
+          var numCards = $cards.length,
+              rotationFactor = 7.83 * Math.pow(2.718, -0.086*numCards),
+              rotation = (index - (numCards-1)/2)*rotationFactor,
+              transY = Math.sin(rotation)/5;
+
+          if (transY === 0)
+            transY = 0.001;
+
+          $(item).css({
+            'left': 0,
+            'transform': 'rotate('+rotation+'deg) translate(0px, ' + transY + 'px)',
+            'transform-origin': "50% 300%"
+          });
+        });
+      });
+    } else {
+      $(cardContainer + ' .card').each(function(index, item) {
+        var numCards = $(cardContainer + ' .card').length,
+        rotationFactor = 7.83 * Math.pow(2.718, -0.086*numCards),
+        rotation = (index - (numCards-1)/2)*rotationFactor,
+        transY = Math.sin(rotation)/5;
 
         if (transY === 0)
           transY = 0.001;
@@ -594,26 +646,10 @@ var positionCards = function(cardContainer, isCurrentPile) {
         $(item).css({
           'left': 0,
           'transform': 'rotate('+rotation+'deg) translate(0px, ' + transY + 'px)',
-          'transform-origin': "50% 300%"
+          'transform-origin': "50% 900%"
         });
       });
-    });
-  } else {
-    $(cardContainer + ' .card').each(function(index, item) {
-      var numCards = $(cardContainer + ' .card').length,
-      rotationFactor = 7.83 * Math.pow(2.718, -0.086*numCards),
-      rotation = (index - (numCards-1)/2)*rotationFactor,
-      transY = Math.sin(rotation)/5;
-
-      if (transY === 0)
-        transY = 0.001;
-
-      $(item).css({
-        'left': 0,
-        'transform': 'rotate('+rotation+'deg) translate(0px, ' + transY + 'px)',
-        'transform-origin': "50% 900%"
-      });
-    });
+    }
   }
 };
 
@@ -664,6 +700,10 @@ Template.roomTemplate.rendered = function() {
   if ($('.current-pile .card').length > 0) {
     var isCurrentPile = true;
     positionCards('.current-pile', isCurrentPile);
+  }
+
+  if ($('.discard-pile .card').length > 0) {
+    positionCards('.discard-pile');
   }
 };
 
@@ -1274,19 +1314,22 @@ var openCreateDialog = function () {
 };
 
 var joinRoom = function(roomId) {
-  var room,
+  var room = Rooms.findOne({'_id': roomId}),
       userId = Meteor.userId(),
-      prevRoom = Rooms.findOne({ allUsers: {$regex : userId}});
+      prevRoom;
 
-  if (prevRoom) {
-    Meteor.call('removeUserFromRoom', userId, prevRoom._id);
-    leaveRoomCb(prevRoom._id);
+  if (userId && room && room.allUsers.length < 4) {
+    prevRoom = Rooms.findOne({ allUsers: {$regex : userId}});
+
+    if (prevRoom) {
+      Meteor.call('removeUserFromRoom', userId, prevRoom._id);
+      leaveRoomCb(prevRoom._id);
+    }
+
+    Meteor.call('addUserToRoom', Meteor.userId(), roomId);
+    Session.set('currentRoom', room._id);
+    joinRoomCb(roomId);
   }
-
-  room = Rooms.findOne({'_id': roomId});
-  Meteor.call('addUserToRoom', Meteor.userId(), roomId);
-  Session.set('currentRoom', room._id);
-  joinRoomCb(roomId);
 };
 
 var leaveRoom = function(urlNavigate) {
