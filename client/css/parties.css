@@ -3,7 +3,12 @@ header {
   padding: 20px;
 }
 
-  header h1 .game-state {
+  header h1 {
+    display: inline-block;
+    line-height: 40px;
+  }
+
+  header .game-state {
     display: inline-block;
     margin-left: 20px;
     border-radius: 5px;
@@ -18,6 +23,15 @@ header {
 
   header h1 .game-state.playing {
     background: #61c419;
+  }
+
+  header .game-status {
+    line-height: 40px;
+    text-align: center;
+  }
+
+  #login-buttons {
+    line-height: 40px;
   }
 
 
@@ -49,7 +63,7 @@ header {
   position: absolute;
   width: 250px;
   right: 0;
-  top: 0;
+  top: 80px;
 }
 
   .game-options .player .state {
@@ -138,18 +152,22 @@ header {
 
     .current-pile {
       position: absolute;
-      top: 130px;
-      left: 150px;
+      top: 160px;
+      left: 200px;
       width: 260px;
-      height: 170px;
+      height: 130px;
     }
+
+      .current-pile .hand-wrapper {
+        position: relative;
+      }
 
     .discard-pile {
       position: absolute;
-      top: 130px;
-      left: 420px;
+      top: 160px;
+      left: 470px;
       width: 130px;
-      height: 170px;
+      height: 130px;
     }
 
     .player-slot .cards-container {

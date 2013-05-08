@@ -27,19 +27,24 @@
 <template name="header">
   <header>
     <div class="container">
-      <div class="eight columns">
+      <div class="six columns">
         {{#if currentRoom}}
         <h1>
           Jabys - {{roomTitle}}
-          <div class="lg btn game-state {{gameState}}">
-            {{gameState}}
-          </div>
         </h1>
+        <div class="lg btn game-state {{gameState}}">
+          {{gameState}}
+        </div>
         {{else}}
         <h1>Jabys</h1>
         {{/if}}
       </div>
-      <div class="eight columns">
+      <div class="four columns">
+        {{#if gameStatus}}
+        <div class="game-status">{{gameStatus}}</div>
+        {{/if}}
+      </div>
+      <div class="six columns">
         <div style="float: right">
           {{loginButtons align="right"}}
           {{#if currentRoom}}
@@ -84,6 +89,13 @@
         -->
 
         <div class="current-pile">
+          {{#each currentPileCards}}
+          <div class="hand-wrapper" style="top: {{top}}px; left: 50px;">
+            {{#each hand}}
+              {{{displayCard label left}}}
+            {{/each}}
+          </div>
+          {{/each}}
         </div>
         <div class="discard-pile">
         </div>
@@ -156,9 +168,6 @@
             <a href="#" class="sm btn pass-move blue">Pass</a>
           {{/if}}
 
-          {{#if gameStatus}}
-          <div class="game-status">{{gameStatus}}</div>
-          {{/if}}
           </div>
         </div>
 

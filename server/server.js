@@ -316,12 +316,6 @@ var checkRules = function(game, cards) {
       updateGame = true;
   }
 
-  console.log('**********************');
-  console.log(players);
-  console.log(playerIndex);
-  console.log(userId);
-  console.log(nextPlayerId);
-  console.log('**********************');
 
   // update the game state, pull cards out of the players hand
   if (updateGame) {
@@ -332,8 +326,27 @@ var checkRules = function(game, cards) {
     );
     Games.update(
       {'_id': game._id},
-      {$set: {'turns': numTurns + 1, 'currentPlayer': nextPlayerId}}
+      {$set: {'turns': numTurns + 1}}
     );
+
+    if (canPlayHigher(cards)) {
+      Games.update(
+        {'_id': game._id},
+        {$set: {'currentPlayer': nextPlayerId}}
+      );
+    } else {
+      // pass everyone, same player goes again
+      // move currentPile to discardPile, empty current pile
+      Games.update(
+        {'_id': game._id},
+        {$push: {'discardPile': currentPile}}
+      );
+      Games.update(
+        {'_id': game._id},
+        {$set: {'currentPile': []}}
+      );
+    }
+
     Hands.update(
       {'user': userId, 'game': game._id},
       {$pull: {'cards': {$in: cards}}}
@@ -342,6 +355,25 @@ var checkRules = function(game, cards) {
   return true;
 };
 
+var canPlayHigher = function(cards) {
+  //can hand be beaten with a higher one?
+  switch (cards.length) {
+    case 1:
+      if (getHandValue(cards) === 15)
+        return false;
+      break;
+    case 2:
+      if (getHandValue(cards) === 30)
+        return false;
+      break;
+    case 5:
+      if (isFourKind(cards) && getFourKindValue(cards) == 60)
+        return false;
+      break;
+  }
+  return true;
+}
+
 var isValidLength = function(cards) {
   var validLengths = [1,2,3,5];
   return _.contains(validLengths, cards.length);
@@ -349,9 +381,9 @@ var isValidLength = function(cards) {
 
 var isValidCombo = function(cards) {
   console.log('checking combo:::::::');
-  console.log(cards);
   var numCards = cards.length,
-      isValid = false;;
+      isValid = false;
+
   switch (numCards) {
     case 1:
       isValid = true;
@@ -365,6 +397,7 @@ var isValidCombo = function(cards) {
       isValid = (isStraight(cards) || isFullHouse(cards) || isFourKind(cards));
       break;
   }
+  console.log('is valid = ' + isValid);
   return isValid;
 };
 
@@ -431,7 +464,6 @@ var getValue = function(cardLabel, suited) {
       value += .4;
     }
   }
-  console.log('for ' + cardLabel + ': value = ' + value);
   return value;
 };
 
@@ -462,8 +494,12 @@ var isFullHouse = function(cards) {
     return getValue(card);
   });
   numKeys = _.keys(cardHash);
+  console.log('*************');
+  console.log(cardHash);
+  console.log(numKeys);
+  console.log('*************');
 
-  if (numKeys === 2) {
+  if (numKeys.length === 2) {
     if (_.values(cardHash)[0].length === 2 || _.values(cardHash)[0].length === 3) {
       return true;
     }
@@ -471,7 +507,7 @@ var isFullHouse = function(cards) {
   return false;
 };
 
-var isFourKind = function(hand) {
+var isFourKind = function(cards) {
   var cardHash = {},
       numKeys;
 
@@ -480,7 +516,7 @@ var isFourKind = function(hand) {
   });
   numKeys = _.keys(cardHash);
 
-  if (numKeys === 2) {
+  if (numKeys.length === 2) {
     if (_.values(cardHash)[0].length === 1 || _.values(cardHash)[0].length === 4) {
       return true;
     }
@@ -565,13 +601,11 @@ var getStraightValue = function(cards) {
 };
 
 var getTripletValue = function(cards) {
-  var cardHash = {},
-      numKeys;
+  var cardHash = {};
 
   cardHash = _.groupBy(cards, function(card) {
     return getValue(card);
   });
-  numKeys = _.keys(cardHash);
   for (var key in cardHash) {
     if (cardHash[key].length === 3) {
       return 3*key;
@@ -581,13 +615,11 @@ var getTripletValue = function(cards) {
 };
 
 var getFourKindValue = function(cards) {
-  var cardHash = {},
-      numKeys;
+  var cardHash = {};
 
   cardHash = _.groupBy(cards, function(card) {
     return getValue(card);
   });
-  numKeys = _.keys(cardHash);
   for (var key in cardHash) {
     if (cardHash[key].length === 4) {
       return 4*key;
