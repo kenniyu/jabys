@@ -81,7 +81,7 @@ Template.roomTemplate.scoreHelper = function (scoreType) {
   }
 };
 
-Template.roomTemplate.readyBtn = function() {
+Template.gameControls.readyBtn = function() {
   var roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId}),
       readyState = room.ready,
@@ -90,7 +90,7 @@ Template.roomTemplate.readyBtn = function() {
   return room.allUsers.length > 1 && !existingGame;
 };
 
-Template.roomTemplate.readied = function() {
+Template.gameControls.readied = function() {
   var roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId}),
       userId = Meteor.userId();
@@ -614,7 +614,7 @@ Template.roomTemplate.rightUserId = function() {
   return rightUserId;
 };
 
-Template.roomTemplate.myTurn = function() {
+Template.gameControls.myTurn = function() {
   var roomId = Session.get('currentRoom'),
       game = Games.findOne({'room': roomId, 'state': 'playing'}),
       userId = Meteor.userId();
@@ -679,44 +679,20 @@ Template.roomTemplate.rendered = function() {
   var doAnimate = shouldAnimate();
 
   if ($('.player-slot.bottom .card').length > 0) {
-    if (doAnimate) {
-      setTimeout(function() {
-        positionCards('.player-slot.bottom');
-      }, 1);
-    } else {
-      positionCards('.player-slot.bottom');
-    }
+    positionCards('.player-slot.bottom');
     $('.player-slot.bottom .card').addClass('animate');
   }
 
   if ($('.player-slot.left .card').length > 0) {
-    if (doAnimate) {
-      setTimeout(function() {
-        positionCards('.player-slot.left');
-      }, 1);
-    } else {
-      positionCards('.player-slot.left');
-    }
+    positionCards('.player-slot.left');
   }
 
   if ($('.player-slot.top .card').length > 0) {
-    if (doAnimate) {
-      setTimeout(function() {
-        positionCards('.player-slot.top');
-      }, 1);
-    } else {
-      positionCards('.player-slot.top');
-    }
+    positionCards('.player-slot.top');
   }
 
   if ($('.player-slot.right .card').length > 0) {
-    if (doAnimate) {
-      setTimeout(function() {
-        positionCards('.player-slot.right');
-      }, 1);
-    } else {
-      positionCards('.player-slot.right');
-    }
+    positionCards('.player-slot.right');
   }
 
   if ($('.current-pile .card').length > 0) {
@@ -772,7 +748,12 @@ Template.roomTemplate.events({
         return $(card).attr('data-label');
       });
 
-      Meteor.call('makeMove', game._id, hand);
+      waitForServer(true);
+      Meteor.call('makeMove', game._id, hand, function() {
+        Meteor.setTimeout(function() {
+          waitForServer(false);
+        }, 1000);
+      });
     }
     event.preventDefault();
   },
@@ -783,7 +764,12 @@ Template.roomTemplate.events({
         game = Games.findOne({'room': roomId, 'state': 'playing'});
 
     if (game) {
-      Meteor.call('makePassMove', game._id);
+      waitForServer(true);
+      Meteor.call('makePassMove', game._id, function() {
+        Meteor.setTimeout(function() {
+          waitForServer(false);
+        }, 1000);
+      });
     }
   }
 
@@ -1598,8 +1584,19 @@ var shouldDisable = function() {
       disable;
   if (game.state === 'finished') {
     disable = true;
+    resetReadyBtn();
   } else {
     disable = false;
   }
   return disable;
 };
+
+var waitForServer = function(wait) {
+  $('.spinner-container .spinner').toggleClass('inactive', !wait);
+  $('.game-controls .actions').toggleClass('inactive', wait);
+};
+
+var resetReadyBtn = function() {
+  var $readyBtn = $('.btn.ready');
+  $readyBtn.removeClass('disabled').text('Ready Up!');
+}

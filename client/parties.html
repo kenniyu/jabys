@@ -169,22 +169,7 @@
           </div>
         </div>
 
-        <div class="game-controls">
-          {{#if readyBtn}}
-            {{#if readied}}
-              <a href="#" class="sm btn ready blue disabled">Readied...</a>
-            {{else}}
-              <a href="#" class="sm btn ready blue">Ready Up!</a>
-            {{/if}}
-          {{/if}}
-
-          {{#if myTurn}}
-            <a href="#" class="sm btn make-move green">Make Move</a>
-            <a href="#" class="sm btn pass-move blue">Pass</a>
-          {{/if}}
-
-          </div>
-        </div>
+        {{> gameControls}}
 
       </section>
     </div>
@@ -227,6 +212,30 @@
   </aside>
 </section>
 
+</template>
+
+<template name="gameControls">
+<div class="game-controls">
+  <div class="spinner-container">
+    <figure class="spinner inactive"></figure>
+  </div>
+  <div class="actions">
+  {{#if readyBtn}}
+    {{#if readied}}
+      <a href="#" class="sm btn ready blue disabled">Readied...</a>
+    {{else}}
+      <a href="#" class="sm btn ready blue">Ready Up!</a>
+    {{/if}}
+  {{/if}}
+
+  {{#if myTurn}}
+    <a href="#" class="sm btn make-move green">Make Move</a>
+    <a href="#" class="sm btn pass-move blue">Pass</a>
+  {{/if}}
+  </div>
+
+  </div>
+</div>
 </template>
 
 <template name="createDialog">

@@ -241,7 +241,18 @@ Meteor.methods({
         });
       }
     }
+  },
+
+  waitForServer: function(wait) {
+    $('.spinner-container .spinner').toggleClass('inactive', !wait);
+    $('.game-controls .actions').toggleClass('inactive', wait);
+  },
+
+  resetReadyBtn: function() {
+    var $readyBtn = $('.btn.ready');
+    $readyBtn.removeClass('disabled').text('Ready Up!');
   }
+
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,3 +271,4 @@ var contactEmail = function (user) {
     return user.services.facebook.email;
   return null;
 };
+

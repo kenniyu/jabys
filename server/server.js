@@ -260,6 +260,12 @@ Meteor.methods({
         playerIndex = players.indexOf(userId);
         nextPlayerId = players[(playerIndex+1)%numPlayers];
 
+        // remove action buttons
+        Games.update(
+          {'_id': game._id},
+          {$set: {currentPlayer: null}}
+        );
+
         Games.update(
           {'_id': gameId},
           {$push: {'passedPlayers': userId}}
@@ -341,8 +347,20 @@ Meteor.methods({
     // sort the hand first
     cards = hand.sort(cardSortFunction);
 
+    // remove action buttons
+    Games.update(
+      {'_id': game._id},
+      {$set: {currentPlayer: null}}
+    );
+
     // check hand against rules
-    checkRules(game, cards);
+    if (!checkRules(game, cards)) {
+      // if invalid, set current player back to the player
+      Games.update(
+        {'_id': game._id},
+        {$set: {currentPlayer: userId}}
+      );
+    }
   }
 });
 
@@ -355,7 +373,6 @@ var checkRules = function(game, cards) {
       allCards,
       nextPlayerId, playerIndex, numPlayers,
       prevHand, compare,
-      updateGame = false,
       gameScore, possessions, prevPossessor,
       passEveryone = false;
 
@@ -390,129 +407,115 @@ var checkRules = function(game, cards) {
   if (!(isValidLength(cards) && isValidCombo(cards)))
     return false;
 
-  if (currentPile.length === 0) {
-    // empty current pile, can play any valid combo
-    // valid combo, add to current pile
-    updateGame = true;
-  } else {
+  if (currentPile.length > 0) {
     // there was a hand played before this
     prevHand = _.last(currentPile);
     compare = compareToHand(prevHand, cards);
-    if (compare)
-      updateGame = true;
+    if (!compare)
+      return false;
   }
 
-
   // update the game state, pull cards out of the players hand
-  if (updateGame) {
-    nextPlayerId = players[(playerIndex+1)%numPlayers];
+  nextPlayerId = players[(playerIndex+1)%numPlayers];
+  Games.update(
+    {'_id': game._id},
+    {$push: {'currentPile': cards}}
+  );
+  Games.update(
+    {'_id': game._id},
+    {$set: {'turns': numTurns + 1, 'passedPlayers': []}}
+  );
+
+  if (canPlayHigher(cards)) {
     Games.update(
       {'_id': game._id},
-      {$push: {'currentPile': cards}}
+      {$set: {'currentPlayer': nextPlayerId}}
     );
+  } else {
     Games.update(
       {'_id': game._id},
-      {$set: {'turns': numTurns + 1, 'passedPlayers': []}}
+      {$set: {currentPlayer: null}}
     );
-
-    if (canPlayHigher(cards)) {
+    Meteor.setTimeout(function() {
       Games.update(
         {'_id': game._id},
-        {$set: {'currentPlayer': nextPlayerId}}
+        {$set: {currentPlayer: userId}}
       );
-    } else {
-      Games.update(
-        {'_id': game._id},
-        {$set: {currentPlayer: null}}
-      );
-      Meteor.setTimeout(function() {
-        Games.update(
-          {'_id': game._id},
-          {$set: {currentPlayer: userId}}
-        );
-        // pass everyone, same player goes again
-        // move currentPile to discardPile, empty current pile
-        // possession gained by this player
+      // pass everyone, same player goes again
+      // move currentPile to discardPile, empty current pile
+      // possession gained by this player
 
-        // refresh the game object
-        game = Games.findOne({'_id': game._id});
-        currentPile = game.currentPile;
-        possessions = game.possessions;
-        passEveryone = true;
-        prevPossessor = _.last(possessions);
-
-        Games.update(
-          {'_id': game._id},
-          {$push: {
-            'discardPile': currentPile,
-            'possessions': userId
-          }}
-        );
-        Games.update(
-          {'_id': game._id},
-          {$set: {'currentPile': []}}
-        );
-
-        // refresh the game object
-        game = Games.findOne({'_id': game._id});
-        // update possession streak count
-        if (prevPossessor && prevPossessor !== userId) {
-          GameScores.update(
-            {'user': prevPossessor, 'game': game._id},
-            {$set: {possessionStreak: 0}}
-          );
-        }
-        GameScores.update(
-          {'user': userId, 'game': game._id},
-          {$inc: {
-            possessionStreak: 1,
-            possessions: 1
-          }}
-        );
-      }, 2000);
-    }
-
-    GameScores.update(
-      {'user': userId, 'game': game._id},
-      {$inc: {
-        score: getHandValue(cards)
-      }}
-    );
-
-    Hands.update(
-      {'user': userId, 'game': game._id},
-      {$pull: {'cards': {$in: cards}}}
-    );
-    hand = Hands.findOne({'game': game._id, 'user': userId});
-
-    if (hand.cards.length === 0) {
-      // this dude won, add his score
-      Games.update(
-        {'_id': game._id},
-        {$push: {'places': userId}}
-      );
-
-      analyzeScore(userId, game._id);
-
-      // check if we should end game
+      // refresh the game object
       game = Games.findOne({'_id': game._id});
-      console.log('*********************');
-      console.log('places = ');
-      console.log(game.places);
-      console.log('players = ');
-      console.log(game.players);
-      console.log('*********************');
+      currentPile = game.currentPile;
+      possessions = game.possessions;
+      passEveryone = true;
+      prevPossessor = _.last(possessions);
 
-      if (game.players.length - game.places.length === 1) {
-        // everyone was placed except one person
-        // game ends. loser gets nothing
-        Games.update(
-          {'_id': game._id},
-          {$set: {'state': 'finished'}}
+      Games.update(
+        {'_id': game._id},
+        {$push: {
+          'discardPile': currentPile,
+          'possessions': userId
+        }}
+      );
+      Games.update(
+        {'_id': game._id},
+        {$set: {'currentPile': []}}
+      );
+
+      // refresh the game object
+      game = Games.findOne({'_id': game._id});
+      // update possession streak count
+      if (prevPossessor && prevPossessor !== userId) {
+        GameScores.update(
+          {'user': prevPossessor, 'game': game._id},
+          {$set: {possessionStreak: 0}}
         );
       }
-    }
+      GameScores.update(
+        {'user': userId, 'game': game._id},
+        {$inc: {
+          possessionStreak: 1,
+          possessions: 1
+        }}
+      );
+    }, 1000);
+  }
 
+  GameScores.update(
+    {'user': userId, 'game': game._id},
+    {$inc: {
+      score: getHandValue(cards, true)
+    }}
+  );
+
+  Hands.update(
+    {'user': userId, 'game': game._id},
+    {$pull: {'cards': {$in: cards}}}
+  );
+  hand = Hands.findOne({'game': game._id, 'user': userId});
+
+  if (hand.cards.length === 0) {
+    // this dude won, add his score
+    Games.update(
+      {'_id': game._id},
+      {$push: {'places': userId}}
+    );
+
+    analyzeScore(userId, game._id);
+
+    // check if we should end game
+    game = Games.findOne({'_id': game._id});
+
+    if (game.players.length - game.places.length === 1) {
+      // everyone was placed except one person
+      // game ends. loser gets nothing
+      Games.update(
+        {'_id': game._id},
+        {$set: {'state': 'finished'}}
+      );
+    }
   }
   return true;
 };
@@ -758,7 +761,7 @@ var compareToHand = function(prevHand, newHand) {
   }
 };
 
-var getHandValue = function(cards) {
+var getHandValue = function(cards, raw) {
   var sum = 0;
   switch (cards.length){
     case 1:
@@ -774,10 +777,18 @@ var getHandValue = function(cards) {
         sum = getStraightValue(cards);
       }
       else if (isFullHouse(cards)) {
-        sum = 100 + getTripletValue(cards);
+        if (raw) {
+          sum = getTripletValue(cards);
+        } else {
+          sum = 100 + getTripletValue(cards);
+        }
       }
       else if (isFourKind(cards)) {
-        sum = 1000 + getFourKindValue(cards);
+        if (raw) {
+          sum = getFourKindValue(cards);
+        } else {
+          sum = 1000 + getFourKindValue(cards);
+        }
       }
       break;
   }
