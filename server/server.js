@@ -173,6 +173,7 @@ Meteor.methods({
       currentPile: [],
       places: [],
       passedPlayers: [],
+      createdAt: (new Date()).getTime(),
       turns: 0
     });
   },
@@ -241,6 +242,7 @@ Meteor.methods({
         playerIndex, nextPlayerId,
         numTurns,
         passedPlayers, numPassedPlayers,
+        possessions, prevPossessor,
         currentPile;
 
     if (game) {
@@ -274,20 +276,46 @@ Meteor.methods({
         console.log(numPlayers);
         console.log('*****************');
         if (numPassedPlayers === numPlayers - 1) {
-          // everyone passed, set currentPlayer to
-          // the nonpassed player
+          // everyone passed, 
+          // set currentPlayer to nonpassed player
+          // set possession to nonpassed player
+          // first get previous possessor
+          possessions = game.possessions;
+          prevPossessor = _.last(possessions);
+
           currentPile = game.currentPile;
+          startingPlayer = _.difference(game.players, passedPlayers)[0];
           Games.update(
             {'_id': game._id},
-            {$push: {'discardPile': currentPile}}
+            {$push: {
+              'discardPile': currentPile,
+              'possessions': startingPlayer
+            }}
           );
           Games.update(
             {'_id': game._id},
             {$set: {
               'currentPile': [], 
-              'currentPlayer': _.difference(game.players, passedPlayers)[0],
+              'currentPlayer': startingPlayer,
               'passedPlayers': [],
               'turns': numTurns + 1
+            }}
+          );
+
+          // refresh the game object
+          // update possession streak count
+          game = Games.findOne({'_id': game._id});
+          if (prevPossessor && prevPossessor !== startingPlayer) {
+            GameScores.update(
+              {'user': prevPossessor, 'game': game._id},
+              {$set: {possessionStreak: 0}}
+            );
+          }
+          GameScores.update(
+            {'user': startingPlayer, 'game': game._id},
+            {$inc: {
+              possessionStreak: 1,
+              possessions: 1
             }}
           );
         } else {
@@ -317,7 +345,6 @@ Meteor.methods({
     // sort the hand first
     cards = hand.sort(cardSortFunction);
 
-
     // check hand against rules
     checkRules(game, cards);
   }
@@ -333,7 +360,8 @@ var checkRules = function(game, cards) {
       nextPlayerId, playerIndex, numPlayers,
       prevHand, compare,
       updateGame = false,
-      gameScore, possessions, prevPossessor;
+      gameScore, possessions, prevPossessor,
+      passEveryone = false;
 
   /* Sanity check */
   if (!hand)
@@ -397,45 +425,63 @@ var checkRules = function(game, cards) {
         {$set: {'currentPlayer': nextPlayerId}}
       );
     } else {
-      // pass everyone, same player goes again
-      // move currentPile to discardPile, empty current pile
-      // possession gained by this player
-
-      // refresh the game object
-      game = Games.findOne({'_id': game._id});
-      currentPile = game.currentPile;
-      possessions = game.possessions;
-
-      prevPossessor = _.last(possessions);
       Games.update(
         {'_id': game._id},
-        {$push: {
-          'discardPile': currentPile,
-          'possessions': userId
-        }}
+        {$set: {currentPlayer: null}}
       );
-      Games.update(
-        {'_id': game._id},
-        {$set: {'currentPile': []}}
-      );
-
-      // refresh the game object
-      game = Games.findOne({'_id': game._id});
-      // update possession streak count
-      if (prevPossessor && prevPossessor !== userId) {
-        GameScores.update(
-          {'user': prevPossessor, 'game': game._id},
-          {$set: {possessionStreak: 0}}
+      Meteor.setTimeout(function() {
+        Games.update(
+          {'_id': game._id},
+          {$set: {currentPlayer: userId}}
         );
-      }
-      GameScores.update(
-        {'user': userId, 'game': game._id},
-        {$inc: {
-          possessionStreak: 1,
-          possessions: 1
-        }}
-      );
+        // pass everyone, same player goes again
+        // move currentPile to discardPile, empty current pile
+        // possession gained by this player
+
+        // refresh the game object
+        game = Games.findOne({'_id': game._id});
+        currentPile = game.currentPile;
+        possessions = game.possessions;
+        passEveryone = true;
+        prevPossessor = _.last(possessions);
+
+        Games.update(
+          {'_id': game._id},
+          {$push: {
+            'discardPile': currentPile,
+            'possessions': userId
+          }}
+        );
+        Games.update(
+          {'_id': game._id},
+          {$set: {'currentPile': []}}
+        );
+
+        // refresh the game object
+        game = Games.findOne({'_id': game._id});
+        // update possession streak count
+        if (prevPossessor && prevPossessor !== userId) {
+          GameScores.update(
+            {'user': prevPossessor, 'game': game._id},
+            {$set: {possessionStreak: 0}}
+          );
+        }
+        GameScores.update(
+          {'user': userId, 'game': game._id},
+          {$inc: {
+            possessionStreak: 1,
+            possessions: 1
+          }}
+        );
+      }, 2000);
     }
+
+    GameScores.update(
+      {'user': userId, 'game': game._id},
+      {$inc: {
+        score: getHandValue(cards)
+      }}
+    );
 
     Hands.update(
       {'user': userId, 'game': game._id},
@@ -454,24 +500,35 @@ var checkRules = function(game, cards) {
 
       // check if we should end game
       game = Games.findOne({'_id': game._id});
+      console.log('*********************');
+      console.log('places = ');
+      console.log(game.places);
+      console.log('players = ');
+      console.log(game.players);
+      console.log('*********************');
+
       if (game.players.length - game.places.length === 1) {
         // everyone was placed except one person
         // game ends. loser gets nothing
         Games.update(
           {'_id': game._id},
-          {$set: {'state': 'finished', 'currentPlayer': null}}
+          {$set: {'state': 'finished'}}
         );
       }
     }
+
   }
   return true;
 };
 
 var analyzeScore = function(userId, gameId) {
   var game = Games.findOne({'_id': gameId}),
+      players,
       possessions,
       score = 0,
-      streakCount = 0;
+      streakCount = 0,
+      hand,
+      numCards = 0;
 
   if (game) {
     possessions = game.possessions;
@@ -483,6 +540,18 @@ var analyzeScore = function(userId, gameId) {
         streakCount = 0;
       }
     });
+
+    // how many cards were left?
+    players = game.players;
+    _.each(players, function(playerId) {
+      if (playerId !== userId) {
+        hand = Hands.findOne({'user': playerId, 'game': gameId});
+        if (hand) {
+          numCards += hand.cards.length;
+        }
+      }
+    });
+    score += numCards;
   }
 
   GameScores.update(

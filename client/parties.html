@@ -13,6 +13,7 @@
   {{/if}}
 
   {{> header }}
+  {{> gameStateContainer }}
 
   {{#if currentRoom}}
     {{> roomTemplate}}
@@ -24,10 +25,24 @@
   </div>
 </template>
 
+<template name="gameStateContainer">
+  <section class="flash-messages">
+  <div class="container">
+    <div class="sixteen columns">
+      <div class="message-wrapper">
+        <p class="message">
+        {{{gameStatus}}}
+        </p>
+      </div>
+    </div>
+  </div>
+  </section>
+</template>
+
 <template name="header">
   <header>
     <div class="container">
-      <div class="six columns">
+      <div class="eight columns">
         {{#if currentRoom}}
         <h1>
           Jabys - {{roomTitle}}
@@ -39,12 +54,7 @@
         <h1>Jabys</h1>
         {{/if}}
       </div>
-      <div class="four columns">
-        {{#if gameStatus}}
-        <div class="game-status">{{gameStatus}}</div>
-        {{/if}}
-      </div>
-      <div class="six columns">
+      <div class="eight columns">
         <div style="float: right">
           {{loginButtons align="right"}}
           {{#if currentRoom}}
@@ -57,10 +67,11 @@
 </template>
 
 <template name="allRoomsTemplate">
+<section class="all-rooms">
   <div class="container">
     <div class="sixteen columns">
 
-      <div class="chatrooms">
+      <div class="rooms">
         <ul class="rooms-list">
         {{#each rooms}}
         <li class="room {{#if inRoom}}selected{{/if}}" data-room-id="{{_id}}">
@@ -74,6 +85,7 @@
       </div>
     </div>
   </div>
+</section>
 </template>
 
 <template name="roomTemplate">
@@ -186,7 +198,10 @@
         <li class="player">
         <span class="state {{ playerReadyState }}"></span>
           <span class="display-name">{{ displayName }}</span>
-          <span class="score">{{ score }}</span>
+          <span class="score">{{ scoreHelper "score" }}</span>
+          <span class="possessions">{{ scoreHelper "possessions" }}</span>
+          <span class="possession-streak">{{ scoreHelper "possessionStreak" }}</span>
+          <span class="total-score">{{ scoreHelper "totalScore" }}</span>
         </li>
         {{/each}}
       </ul>

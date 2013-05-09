@@ -25,17 +25,35 @@ header {
     background: #61c419;
   }
 
-  header .game-status {
-    line-height: 40px;
-    text-align: center;
-  }
 
   #login-buttons {
     line-height: 40px;
   }
 
+/* Flash Messages */
+.flash-messages {
+  position: absolute;
+  width: 100%;
+}
 
-/* Rooms */
+  .flash-messages .message-wrapper {
+    text-align: center;
+  }
+
+    .flash-messages .message-wrapper .message {
+      display: inline-block;
+      padding: 10px 20px;
+      border: 1px solid #bbb;
+      border-top: 0px;
+      background: rgba(255, 255, 200, 0.4);
+    }
+
+/* All Rooms */
+.all-rooms {
+  margin-top: 40px;
+}
+
+/* Room */
 .room.selected {
   background: rgba(150, 200, 0, .3);
 }

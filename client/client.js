@@ -41,26 +41,41 @@ Template.roomTemplate.playerReadyState = function () {
   }
 };
 
-Template.roomTemplate.score = function () {
+Template.roomTemplate.scoreHelper = function (scoreType) {
+
   var userId = this._id,
       roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId}),
-      game, gameId, gameScore;
+      game, gameId, gameScore, gameScores;
 
-  if (room) {
-    game = Games.findOne({'room': roomId, 'state': 'playing'});
-    if (!game) {
-      // find the previous game
-      game = Games.findOne(
-        {'room': roomId, 'state': 'finished'},
-        {sort: {$natural: -1} }
-      );
-    }
-    if (game) {
-      gameId = game._id;
-      gameScore = GameScores.findOne({'game': gameId, 'user': userId});
-      if (gameScore) {
-        return gameScore.score;
+  if (scoreType === 'totalScore') {
+    gameScores = GameScores.find({'user': userId}).fetch();
+    return _.reduce(gameScores, function(runningSum, gameScore){ return runningSum + gameScore.score; }, 0);
+  } else {
+    if (room) {
+      game = Games.findOne({'room': roomId, 'state': 'playing'});
+      if (!game) {
+        // no ongoing game, find previously finished game
+        game = Games.findOne(
+          {'room': roomId, 'state': 'finished'},
+          {sort: {'createdAt': -1} }
+        );
+      }
+      if (game) {
+        gameId = game._id;
+        gameScore = GameScores.findOne({'game': gameId, 'user': userId});
+        if (gameScore) {
+          switch (scoreType) {
+            case 'score':
+              return gameScore.score;
+            case 'possessions':
+              return gameScore.possessions;
+            case 'possessionStreak':
+              return gameScore.possessionStreak;
+            default:
+              return '';
+          }
+        }
       }
     }
   }
@@ -85,7 +100,7 @@ Template.roomTemplate.readied = function() {
 
 Template.roomTemplate.topCards = function() {
   var roomId = Session.get('currentRoom'),
-      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
       myUserId = Meteor.userId(),
       userId,
       numCardsObj,
@@ -94,6 +109,7 @@ Template.roomTemplate.topCards = function() {
 
   if (game) {
     gameId = game._id;
+    console.log(gameId);
     players = game.players;
     numPlayers = players.length;
     myPlayerIndex = players.indexOf(myUserId);
@@ -119,7 +135,7 @@ Template.roomTemplate.topCards = function() {
 
 Template.roomTemplate.leftCards = function() {
   var roomId = Session.get('currentRoom'),
-      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
       myUserId = Meteor.userId(),
       userId,
       numCardsObj,
@@ -148,7 +164,7 @@ Template.roomTemplate.leftCards = function() {
 
 Template.roomTemplate.rightCards = function() {
   var roomId = Session.get('currentRoom'),
-      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
       numCardsObj,
       myUserId = Meteor.userId(),
       userId,
@@ -183,7 +199,7 @@ Template.roomTemplate.rightCards = function() {
 Template.roomTemplate.myCards = function() {
   var roomId = Session.get('currentRoom'),
       userId = Meteor.userId(),
-      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
       gameId,
       hand,
       cards = [],
@@ -197,6 +213,11 @@ Template.roomTemplate.myCards = function() {
     if (hand) {
       sortedCards = sortHand(hand.cards);
       cards = _.map(sortedCards, toCardObj);
+      if (game.state === 'finished') {
+        _.each(cards, function(cardObj) {
+          cardObj['disabled'] = true;
+        });
+      }
     }
     /*
     Meteor.call('getHand', userId, gameId, function(error, hand) {
@@ -205,6 +226,7 @@ Template.roomTemplate.myCards = function() {
     });
     */
   }
+  console.log(cards);
   return cards;
 };
 
@@ -806,6 +828,10 @@ Template.roomTemplate.displayCard = function(cardLabel, left) {
     cardClass = 'card';
   }
 
+  if (shouldDisable()) {
+    cardClass += ' disabled';
+  }
+
   if (!left)
     left = 0;
 
@@ -1206,8 +1232,53 @@ Template.header.roomTitle = function() {
   return room.title;
 };
 
-Template.header.gameStatus = function() {
-  return 'game status goes here';
+Template.gameStateContainer.gameStatus = function() {
+  var roomId = Session.get('currentRoom'),
+      room = Rooms.findOne({'_id': roomId}),
+      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      currentPlayer,
+      userDisplayName,
+      gameScore, score, scoreDescriptor = '',
+      winner;
+
+  if (room) {
+    if (game && game.currentPlayer) {
+      currentPlayer = game.currentPlayer;
+      if (currentPlayer === Meteor.userId()) {
+        userDisplayName = 'your';
+      } else {
+        userDisplayName = displayName(Meteor.users.findOne({'_id': currentPlayer})) + '\'s';
+      }
+      return 'It is ' + userDisplayName + ' turn';
+    } else {
+      // no ongoing game, find last finished game
+      game = Games.findOne({'room': roomId, 'state': 'finished'}, {sort: {'createdAt': -1}});
+      if (game && game.places && _.first(game.places)) {
+        winner = _.first(game.places);
+        userDisplayName = displayName(Meteor.users.findOne({'_id': winner}));
+        gameScore = GameScores.findOne({
+          'user': winner,
+          'game': game._id
+        });
+        score = gameScore.score;
+        if (score > 15) {
+          scoreDescriptor = 'whopping';
+        } else if (score > 8) {
+          scoreDescriptor = 'fine';
+        }
+        return '<strong>' + userDisplayName + '</strong> won the last game with a <em>' + scoreDescriptor + '</em> score of <strong>' + gameScore.score + '</strong>!';
+      } else {
+        // newly created room. no games at all
+        return 'Waiting for players (to ready up)';
+      }
+    }
+  } else {
+    if (Meteor.userId()) {
+      return 'Join or Create a Room!';
+    } else {
+      return 'Sign In/Create an Account to Play!';
+    }
+  }
 };
 
 Template.header.events({
@@ -1510,13 +1581,25 @@ var getValueWithSuit = function(cardLabel) {
 
 var shouldAnimate = function() {
   var roomId = Session.get('currentRoom'),
-      game = Games.findOne({'room': roomId, 'state': 'playing'}),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
       animate;
 
-  if (game && game.turns > 0) {
+  if (game && (game.turns > 0 || game.state === 'finished')) {
     animate = false;
   } else {
     animate = true;
   }
   return animate;
-}
+};
+
+var shouldDisable = function() {
+  var roomId = Session.get('currentRoom'),
+      game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
+      disable;
+  if (game.state === 'finished') {
+    disable = true;
+  } else {
+    disable = false;
+  }
+  return disable;
+};
