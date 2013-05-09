@@ -270,11 +270,7 @@ Meteor.methods({
 
         passedPlayers = game.passedPlayers;
         numPassedPlayers = passedPlayers.length;
-        console.log('*****************');
-        console.log(passedPlayers);
-        console.log(numPassedPlayers);
-        console.log(numPlayers);
-        console.log('*****************');
+
         if (numPassedPlayers === numPlayers - 1) {
           // everyone passed, 
           // set currentPlayer to nonpassed player

@@ -314,6 +314,10 @@ header {
   -webkit-transition: all 0.25s ease;
 }
 
+.card.disabled {
+  opacity: 0.5;
+}
+
 .card.selected {
 }
 

@@ -741,7 +741,7 @@ Template.roomTemplate.events({
     event.preventDefault();
   },
 
-  'click .player-slot.bottom .card': function(event) {
+  'click .player-slot.bottom .card:not(.disabled)': function(event) {
     var $card = $(event.target).closest('.card'),
         currentTransform;
     $card.toggleClass('selected')
