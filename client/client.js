@@ -1486,9 +1486,6 @@ var submitChat = function(message) {
     message: message
   }, function (error, room) {
     if (! error) {
-      $('.chat-messages').scrollTop(
-        $('.chat-messages')[0].scrollHeight
-      );
     }
   });
 };
