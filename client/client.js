@@ -737,13 +737,11 @@ Template.sidebar.events({
 
     if ($stats.hasClass('hidden')) {
       setTimeout(function() {
-        $details.html('&raquo;');
         statsBoard[userId] = 'shown';
         Session.set('statsBoard', statsBoard);
       }, 500);
     } else {
       setTimeout(function() {
-        $details.html('&laquo;');
         statsBoard[userId] = 'hidden';
         Session.set('statsBoard', statsBoard);
       }, 500);

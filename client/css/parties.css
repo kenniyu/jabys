@@ -102,7 +102,16 @@ header {
   .game-options .player {
     position: relative;
     overflow: hidden;
+    background: rgb(255,255,255); /* Old browsers */
+    background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
   }
+
 
   .game-options .player .state {
     display: inline-block;
@@ -136,7 +145,14 @@ header {
     width: 300px;
     height: 51px;
     transition: all 0.5s ease;
-    background: rgba(255, 255, 255, 1);
+    background: rgb(255,255,255); /* Old browsers */
+    background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
   }
 
   .game-options .player .stats.hidden {
@@ -150,7 +166,8 @@ header {
     .game-options .player .stats .stat {
       float: left;
       text-align: center;
-      box-shadow: 1px 0 0 #ddd;
+      border-right: 1px solid #ccc;
+      box-shadow: 1px 0 0 #fff;
     }
 
     .game-options .player .stats .stat.score {
@@ -162,7 +179,9 @@ header {
     }
 
     .game-options .player .stats .stat.total-score {
-      width: 120px;
+      width: 102px;
+      box-shadow: 0 0 0 #000;
+      border-right: 0;
     }
 
       .game-options .player .stats .stat .value {
@@ -179,15 +198,34 @@ header {
 
   .game-options .player .details {
     position: absolute;
-    padding: 0;
-    border-bottom: 0;
-    box-shadow: 0 0 0 #000;
-    text-decoration: none;
+    top: 0;
+    right: 0;
     z-index: 9999;
-    top: 13px;
-    right: 10px;
-    font-size: 20px;
+    padding: 10px 5px;
+    border-left: 1px solid rgb(216, 216, 216);
+    box-shadow: inset 1px 0 0 #fff;
+    background: rgb(255,255,255); /* Old browsers */
+    background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
   }
+
+    .game-options .player .details:hover {
+      background: #fff;
+    }
+
+    .game-options .player .details .dot {
+      width: 6px;
+      height: 6px;
+      margin: 3px auto;
+      display: block;
+      border-radius: 3px;
+      background: rgb(223, 223, 223);
+    }
 
   .game-options h2 {
     text-align: center;

@@ -190,7 +190,11 @@
         <li class="player" data-user-id="{{ _id }}">
           <span class="state {{ playerReadyState }}"></span>
           <span class="display-name">{{ displayName }}</span>
-          <a href="#" class="details">&laquo;</a>
+          <a href="#" class="details">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </a>
           <div class="stats {{ showStats }}">
             <div class="stat score">
               <p class="value">{{ scoreHelper "score" }}</p>
