@@ -195,7 +195,7 @@ Template.roomTemplate.rightCards = function() {
   return cards;
 };
 
-Template.roomTemplate.myCards = function() {
+Template.myCardsTemplate.myCards = function() {
   var roomId = Session.get('currentRoom'),
       userId = Meteor.userId(),
       game = Games.findOne({'room': roomId}, {sort: {createdAt: -1}}),
@@ -691,14 +691,25 @@ Template.sidebar.rendered = function() {
   );
 };
 
-Template.roomTemplate.rendered = function() {
-  var doAnimate = shouldAnimate();
+Template.myCardsTemplate.rendered = function() {
+  if ($('.player-slot.bottom .card').length > 0) {
+    positionCards('.player-slot.bottom');
+    outjogSelectedCards();
+    setTimeout(function() {
+      $('.player-slot.bottom .card').addClass('animate');
+    }, 1000);
+  }
+};
 
+Template.roomTemplate.rendered = function() {
+
+  /*
   if ($('.player-slot.bottom .card').length > 0) {
     positionCards('.player-slot.bottom');
     outjogSelectedCards();
     $('.player-slot.bottom .card').addClass('animate');
   }
+ */
 
   if ($('.player-slot.left .card').length > 0) {
     positionCards('.player-slot.left');
@@ -938,7 +949,7 @@ Template.roomTemplate.displayCard = function(cardLabel, left) {
   var val, suit, htmlString,
       cardClass;
 
-  if (shouldAnimate()) {
+  if (false) {//shouldAnimate()) {
     cardClass = 'card animate';
   } else {
     cardClass = 'card';
@@ -1031,7 +1042,7 @@ Template.roomTemplate.displayCard = function(cardLabel, left) {
             break;
           case '8':
             htmlString = "<div class='" + cardClass + "' data-label=\"8D\" style=\"left: " + left + "px;\"><div class='front red'><div class='index' data-suit='d'>8<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA3'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB2'>&diams;</div><div class='spotB4'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC3'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
-            break;          
+            break;
           case '9':
             htmlString = "<div class='" + cardClass + "' data-label=\"9D\" style=\"left: " + left + "px;\"><div class='front red'><div class='index' data-suit='d'>9<br />&diams;</div><div class='spotA1'>&diams;</div><div class='spotA2'>&diams;</div><div class='spotA4'>&diams;</div><div class='spotA5'>&diams;</div><div class='spotB3'>&diams;</div><div class='spotC1'>&diams;</div><div class='spotC2'>&diams;</div><div class='spotC4'>&diams;</div><div class='spotC5'>&diams;</div></div></div>";
             break;
@@ -1144,6 +1155,8 @@ Template.roomTemplate.displayCard = function(cardLabel, left) {
   }
   return htmlString;
 }
+Template.myCardsTemplate.displayCard = Template.roomTemplate.displayCard;
+Template.myCardsTemplate.isCurrentPlayer = Template.roomTemplate.isCurrentPlayer;
 
 Template.allRoomsTemplate.rooms = function () {
   var rooms = Rooms.find(
@@ -1705,6 +1718,7 @@ var shouldAnimate = function() {
   } else {
     animate = true;
   }
+  return false;
   return animate;
 };
 

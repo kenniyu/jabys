@@ -289,6 +289,8 @@ header {
 
 /* Game container */
 .game-container {
+  /*border-radius: 260px;
+  border: 1px solid #ccc;*/
   position: relative;
   height: 529px;
 }

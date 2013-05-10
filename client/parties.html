@@ -144,17 +144,7 @@
           </div>
         </div>
 
-        <div class="player-slot bottom">
-          <div class="profile">
-            <figure class="photo"></figure>
-            <p class="name {{isCurrentPlayer "bottom"}}">me</p>
-          </div>
-          <div class="cards-container">
-            {{#each myCards}}
-              {{{displayCard label}}}
-            {{/each}}
-          </div>
-        </div>
+        {{> myCardsTemplate }}
 
         <div class="player-slot left" data-user-id="{{playerId "left"}}">
           <div class="profile">
@@ -177,6 +167,20 @@
   </div>
 </section>
 
+</template>
+
+<template name="myCardsTemplate">
+  <div class="player-slot bottom">
+    <div class="profile">
+      <figure class="photo"></figure>
+      <p class="name {{isCurrentPlayer "bottom"}}">me</p>
+    </div>
+    <div class="cards-container">
+      {{#each myCards}}
+        {{{displayCard label}}}
+      {{/each}}
+    </div>
+  </div>
 </template>
 
 <template name="sidebar">
