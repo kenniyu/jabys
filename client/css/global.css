@@ -263,13 +263,13 @@ a.btn {
 /* Spinner ***********************************************/
 .spinner-container {
   width: 100%;
+  height: 100%;
   position: absolute;
-  padding: 5px 0;
+  top: 0;
 }
 
   .spinner-container .spinner {
-    width: 20px;
-    height: 20px;
+    height: 100%;
     background: transparent url(/spinner.gif) 50% 50% no-repeat;
     margin: auto;
   }

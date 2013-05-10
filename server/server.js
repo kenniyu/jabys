@@ -339,7 +339,8 @@ Meteor.methods({
     var game = Games.findOne({'_id': gameId}),
         userId = Meteor.userId(),
         players, playerIndex, nextPlayerId, numPlayers,
-        cards;
+        cards,
+        newHand;
 
     if (!game)
       return false;
@@ -360,6 +361,13 @@ Meteor.methods({
         {'_id': game._id},
         {$set: {currentPlayer: userId}}
       );
+    } else {
+      // valid move, update number of cards
+      newHand = Hands.findOne({'user': userId, 'game': game._id});
+      NumCards.update(
+        {'user': userId, 'game': game._id},
+        {$set: {cards: newHand.cards.length}}
+      );
     }
   }
 });
@@ -374,7 +382,8 @@ var checkRules = function(game, cards) {
       nextPlayerId, playerIndex, numPlayers,
       prevHand, compare,
       gameScore, possessions, prevPossessor,
-      passEveryone = false;
+      passEveryone = false,
+      room;
 
   /* Sanity check */
   if (!hand)
@@ -515,6 +524,17 @@ var checkRules = function(game, cards) {
         {'_id': game._id},
         {$set: {'state': 'finished'}}
       );
+      Rooms.update(
+        {'_id': game.room},
+        {$set: {'readyPlayers': []}}
+      );
+      room = Rooms.findOne({'_id': game.room});
+      if (room.allUsers.length > 1) {
+        Rooms.update(
+          {'_id': game.room},
+          {$set: {'ready': true}}
+        );
+      }
     }
   }
   return true;

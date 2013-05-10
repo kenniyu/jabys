@@ -266,8 +266,8 @@ header {
       position: absolute;
       top: 160px;
       left: 200px;
-      width: 260px;
-      height: 130px;
+      width: 220px;
+      height: 200px;
     }
 
       .current-pile .hand-wrapper {
@@ -363,14 +363,30 @@ header {
 
     .game-controls {
       position: absolute;
-      top: 330px;
-      left: 150px;
-      width: 620px;
+      top: 180px;
+      left: 380px;
+      width: 180px;
+      height: 180px;
       text-align: center;
     }
 
+      .game-controls .actions {
+        position: absolute;
+        width: 100%;
+      }
+
       .game-controls .btn {
         width: 60px;
+        display: block;
+        margin: auto;
+      }
+
+      .game-controls .btn.make-move {
+        margin-top: 120px;
+      }
+
+      .game-controls .btn.ready {
+        margin-top: 40px;
       }
 
 

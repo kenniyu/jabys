@@ -24,9 +24,9 @@ Meteor.startup(function () {
 // Room details sidebar
 
 Template.sidebar.messages = function () {
-  var messages = Messages.find({
-    room: Session.get('currentRoom')
-  });
+  var messages = Messages.find(
+    {room: Session.get('currentRoom')}
+  );
   return messages;
 };
 
@@ -109,7 +109,6 @@ Template.roomTemplate.topCards = function() {
 
   if (game) {
     gameId = game._id;
-    console.log(gameId);
     players = game.players;
     numPlayers = players.length;
     myPlayerIndex = players.indexOf(myUserId);
@@ -226,7 +225,6 @@ Template.roomTemplate.myCards = function() {
     });
     */
   }
-  console.log(cards);
   return cards;
 };
 
@@ -234,8 +232,14 @@ Template.roomTemplate.discardPileCards = function() {
   var roomId = Session.get('currentRoom'),
       game = Games.findOne({'room': roomId, 'state': 'playing'}),
       gameId,
-      discardPile;
+      discardPile = [];
 
+  if (!game) {
+    game = Games.findOne(
+      {'room': roomId, 'state': 'finished'},
+      {sort: {createdAt: -1}}
+    );
+  }
   if (game) {
     gameId = game._id;
     discardPile = _.flatten(game.discardPile);
@@ -257,6 +261,12 @@ Template.roomTemplate.currentPileCards = function() {
       currentPileObj = [],
       handObj;
 
+  if (!game) {
+    game = Games.findOne(
+      {'room': roomId, 'state': 'finished'},
+      {sort: {createdAt: -1}}
+    );
+  }
   if (game) {
     gameId = game._id;
     currentPile = game.currentPile;
@@ -680,6 +690,7 @@ Template.roomTemplate.rendered = function() {
 
   if ($('.player-slot.bottom .card').length > 0) {
     positionCards('.player-slot.bottom');
+    outjogSelectedCards();
     $('.player-slot.bottom .card').addClass('animate');
   }
 
@@ -779,13 +790,26 @@ Template.roomTemplate.events({
 
   'click .player-slot.bottom .card:not(.disabled)': function(event) {
     var $card = $(event.target).closest('.card'),
-        currentTransform;
-    $card.toggleClass('selected')
+        currentTransform,
+        selectedCards = Session.get('selectedCards'),
+        label = $card.attr('data-label');
+
+
+    $card.toggleClass('selected');
+    if (!selectedCards) {
+      selectedCards = [];
+    }
+
     if ($card.hasClass('selected')) {
+      if (!_.contains(selectedCards, label)) {
+        selectedCards.push($card.attr('data-label'));
+      }
       $card.attr('style', $card.attr('style').replace(/translate\(0px, (-)?[0-9]+./, "translate(0px, -20."));
     } else {
+      selectedCards = _.without(selectedCards, label);
       $card.attr('style', $card.attr('style').replace(/translate\(0px, (-)?[0-9]+./, "translate(0px, 0."));
     }
+    Session.set('selectedCards', selectedCards);
     event.preventDefault();
   },
 
@@ -1704,4 +1728,14 @@ var waitForServer = function(wait) {
 var resetReadyBtn = function() {
   var $readyBtn = $('.btn.ready');
   $readyBtn.removeClass('disabled').text('Ready Up!');
+};
+
+var outjogSelectedCards = function() {
+  var selectedCards = Session.get('selectedCards'),
+      $card;
+  _.each(selectedCards, function(card) {
+    $card = $('.card[data-label="' + card + '"]');
+    $card.trigger('click');
+  });
 }
+

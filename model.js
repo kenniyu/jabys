@@ -155,7 +155,8 @@ Meteor.methods({
     return Messages.insert({
       user: this.userId,
       room: options.room,
-      message: options.message
+      message: options.message,
+      createdAt: (new Date()).getTime()
     });
   },
 
