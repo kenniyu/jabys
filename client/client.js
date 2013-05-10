@@ -685,6 +685,12 @@ var positionCards = function(cardContainer, isCurrentPile) {
   }
 };
 
+Template.sidebar.rendered = function() {
+  $('.chat-messages').scrollTop(
+    $('.chat-messages')[0].scrollHeight
+  );
+};
+
 Template.roomTemplate.rendered = function() {
   var doAnimate = shouldAnimate();
 
