@@ -79,10 +79,30 @@ header {
   border-radius: 5px;
   box-shadow: 0 1px 0 #fff;
   position: absolute;
-  width: 250px;
+  width: 300px;
   right: 0;
-  top: 80px;
+  bottom: 0;
+  height: auto;
 }
+
+  .game-options .players-wrapper ul, .game-options .chat-wrapper ul, .game-options .chat-wrapper .chat-bar {
+    height: auto;
+    transition: all 0.5s ease;
+    overflow: hidden;
+  }
+
+  .game-options .chat-wrapper ul {
+    overflow: auto;
+  }
+
+  .game-options .players-wrapper.minimized ul, .game-options .chat-wrapper.minimized ul, .game-options .chat-wrapper.minimized .chat-bar {
+    height: 0;
+  }
+
+  .game-options .player {
+    position: relative;
+    overflow: hidden;
+  }
 
   .game-options .player .state {
     display: inline-block;
@@ -106,26 +126,91 @@ header {
 
   .game-options .player .score {
     display: inline-block;
-    margin-left: 15px;
-    font-style: italic;
+  }
+
+  .game-options .player .stats {
+    position: absolute;
+    border-left: 1px solid #ccc;
+    top: 0;
+    left: -1px;
+    width: 300px;
+    height: 51px;
+    transition: all 0.5s ease;
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .game-options .player .stats.hidden {
+    left: 300px;
+  }
+
+    .game-options .player .stats p {
+      padding: 7px 8px;
+    }
+
+    .game-options .player .stats .stat {
+      float: left;
+      text-align: center;
+      box-shadow: 1px 0 0 #ddd;
+    }
+
+    .game-options .player .stats .stat.score {
+      width: 90px;
+    }
+
+    .game-options .player .stats .stat.possessions {
+      width: 90px;
+    }
+
+    .game-options .player .stats .stat.total-score {
+      width: 120px;
+    }
+
+      .game-options .player .stats .stat .value {
+        font-size: 20px;
+        height: 13px;
+      }
+
+      .game-options .player .stats .stat .label {
+        text-transform: uppercase;
+        font-weight: bold;
+        font-style: normal;
+        font-size: 10px;
+      }
+
+  .game-options .player .details {
+    position: absolute;
+    padding: 0;
+    border-bottom: 0;
+    box-shadow: 0 0 0 #000;
+    text-decoration: none;
+    z-index: 9999;
+    top: 13px;
+    right: 10px;
+    font-size: 20px;
   }
 
   .game-options h2 {
     text-align: center;
-    background: #fff;
     border-bottom: 1px solid #ddd;
     padding: 10px 0;
     font-size: 16px;
     font-weight: bold;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
   }
 
   .game-options .heading.players {
-    border-radius: 5px 5px 0 0;
+    background: rgb(184, 223, 134);
   }
+
+  .game-options .heading.chat {
+    background: rgb(238, 219, 185);
+  }
+
 
   .chat-messages {
     padding: 0 1px;
-    max-height: 270px;
+    max-height: 300px;
     overflow-y: auto;
     overflow-x: hidden;
     word-wrap: break-word;
@@ -135,10 +220,13 @@ header {
       background: #fff;
     }
 
+    .chat-messages .message:last-child {
+      box-shadow: 0 0 0 #000;
+      border-bottom: 0;
+    }
+
       .chat-messages .message .display-name {
         font-weight: bold;
-      }
-      .chat-messages .message .text {
       }
 
         .chat-wrapper input.chat-input {
@@ -164,7 +252,7 @@ header {
 /* Game container */
 .game-container {
   position: relative;
-  height: 469px;
+  height: 529px;
 }
 
   .game-container .player-slot {
@@ -205,7 +293,7 @@ header {
     }
 
     .player-slot.bottom {
-      bottom: 20px;
+      bottom: 80px;
       left: 265px;
     }
 
@@ -385,5 +473,7 @@ header {
 }
 
 aside ul li {
-  padding: 10px;
+  padding: 15px;
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 1px 0 #fff;
 }

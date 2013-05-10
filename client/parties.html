@@ -17,12 +17,13 @@
 
   {{#if currentRoom}}
     {{> roomTemplate}}
+    {{> sidebar}}
   {{else}}
     {{> allRoomsTemplate}}
   {{/if}}
 
 
-  </div>
+
 </template>
 
 <template name="gameStateContainer">
@@ -174,25 +175,44 @@
       </section>
     </div>
   </div>
+</section>
 
+</template>
+
+<template name="sidebar">
   <aside class="game-options">
-    <div class="players-wrapper">
-      <h2 class="heading players">Noobs/Pros</h2>
+    <div class="players-wrapper {{playersMinMax}}">
+      <h2 class="heading players">
+        Noobs/Pros
+      </h2>
       <ul class="players">
         {{#each allUsers}}
-        <li class="player">
-        <span class="state {{ playerReadyState }}"></span>
+        <li class="player" data-user-id="{{ _id }}">
+          <span class="state {{ playerReadyState }}"></span>
           <span class="display-name">{{ displayName }}</span>
-          <span class="score">{{ scoreHelper "score" }}</span>
-          <span class="possessions">{{ scoreHelper "possessions" }}</span>
-          <span class="possession-streak">{{ scoreHelper "possessionStreak" }}</span>
-          <span class="total-score">{{ scoreHelper "totalScore" }}</span>
+          <a href="#" class="details">&laquo;</a>
+          <div class="stats {{ showStats }}">
+            <div class="stat score">
+              <p class="value">{{ scoreHelper "score" }}</p>
+              <p class="label">Points</p>
+              </div>
+            <div class="stat possessions">
+              <p class="value">{{ scoreHelper "possessions" }}</p>
+              <p class="label">Possessions</p>
+            </div>
+            <div class="stat total-score">
+              <p class="value">{{ scoreHelper "totalScore" }}</p>
+              <p class="label">All Time Points</p>
+            </div>
+          </div>
         </li>
         {{/each}}
       </ul>
     </div>
-    <div class="chat-wrapper">
-      <h2 class="heading chat">Trash Talk</h2>
+    <div class="chat-wrapper {{chatMinMax}}">
+      <h2 class="heading chat">
+        Trash Talk
+      </h2>
       <ul class="chat-messages">
       {{#if messages}}
         {{#each messages}}
@@ -210,9 +230,9 @@
       </div>
     </div>
   </aside>
-</section>
-
+</div>
 </template>
+
 
 <template name="gameControls">
 <div class="game-controls">
@@ -264,3 +284,4 @@
     </div>
   </div>
 </template>
+

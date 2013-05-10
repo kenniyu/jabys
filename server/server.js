@@ -486,7 +486,7 @@ var checkRules = function(game, cards) {
   GameScores.update(
     {'user': userId, 'game': game._id},
     {$inc: {
-      score: getHandValue(cards, true)
+      score: cards.length
     }}
   );
 
@@ -524,12 +524,16 @@ var analyzeScore = function(userId, gameId) {
   var game = Games.findOne({'_id': gameId}),
       players,
       possessions,
-      score = 0,
+      score,
       streakCount = 0,
       hand,
+      gameScore,
       numCards = 0;
 
   if (game) {
+    gameScore = GameScores.findOne({'user': userId, 'game': gameId});
+    score = gameScore.score;
+
     possessions = game.possessions;
     _.each(possessions, function(possessor) {
       if (possessor === userId) {

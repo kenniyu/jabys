@@ -23,14 +23,14 @@ Meteor.startup(function () {
 ///////////////////////////////////////////////////////////////////////////////
 // Room details sidebar
 
-Template.roomTemplate.messages = function () {
+Template.sidebar.messages = function () {
   var messages = Messages.find({
     room: Session.get('currentRoom')
   });
   return messages;
 };
 
-Template.roomTemplate.playerReadyState = function () {
+Template.sidebar.playerReadyState = function () {
   var userId = this._id,
       roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId});
@@ -41,7 +41,7 @@ Template.roomTemplate.playerReadyState = function () {
   }
 };
 
-Template.roomTemplate.scoreHelper = function (scoreType) {
+Template.sidebar.scoreHelper = function (scoreType) {
 
   var userId = this._id,
       roomId = Session.get('currentRoom'),
@@ -705,7 +705,63 @@ Template.roomTemplate.rendered = function() {
   }
 };
 
-Template.roomTemplate.events({
+Template.sidebar.events({
+  'click .player .details': function(event) {
+    var $target = $(event.target),
+        $stats = $target.closest('.player').find('.stats'),
+        $details = $stats.prev('.details'),
+        statsBoard = Session.get('statsBoard'),
+        userId = $target.closest('.player').attr('data-user-id');
+
+    if (!statsBoard)
+      statsBoard = {};
+    if (!statsBoard[userId])
+      statsBoard[userId] = 'hidden';
+
+    if ($stats.hasClass('hidden')) {
+      setTimeout(function() {
+        $details.html('&raquo;');
+        statsBoard[userId] = 'shown';
+        Session.set('statsBoard', statsBoard);
+      }, 500);
+    } else {
+      setTimeout(function() {
+        $details.html('&laquo;');
+        statsBoard[userId] = 'hidden';
+        Session.set('statsBoard', statsBoard);
+      }, 500);
+    }
+    $stats.toggleClass('hidden');
+
+    event.preventDefault();
+  },
+
+  'click .heading.players': function(event) {
+    var $target = $(event.target),
+        $heading = $target.closest('.heading'),
+        $wrapper = $heading.closest('.players-wrapper');
+
+    if ($wrapper.hasClass('minimized')) {
+      Session.set('playersMinMax', 'maximized');
+    } else {
+      Session.set('playersMinMax', 'minimized');
+    }
+    event.preventDefault();
+  },
+
+  'click .heading.chat': function(event) {
+    var $target = $(event.target),
+        $heading = $target.closest('.heading'),
+        $wrapper = $heading.closest('.chat-wrapper');
+
+    if ($wrapper.hasClass('minimized')) {
+      Session.set('chatMinMax', 'maximized');
+    } else {
+      Session.set('chatMinMax', 'minimized');
+    }
+    event.preventDefault();
+  },
+
   'keyup .chat-input': function (event) {
     var keyCode = event.keyCode,
         message;
@@ -715,7 +771,11 @@ Template.roomTemplate.events({
       $(event.target).val('');
     }
     event.preventDefault();
-  },
+  }
+
+});
+
+Template.roomTemplate.events({
 
   'click .player-slot.bottom .card:not(.disabled)': function(event) {
     var $card = $(event.target).closest('.card'),
@@ -779,7 +839,35 @@ Template.roomTemplate.room = function () {
   return Rooms.findOne(Session.get("selected"));
 };
 
-Template.roomTemplate.allUsers = function() {
+Template.sidebar.showStats = function () {
+  var userId = this._id,
+      statsBoard = Session.get('statsBoard');
+  if (statsBoard && statsBoard[userId]) {
+    return statsBoard[userId];
+  } else {
+    return 'hidden';
+  }
+};
+
+Template.sidebar.playersMinMax = function () {
+  var playersMinMax = Session.get('playersMinMax');
+  if (playersMinMax) {
+    return playersMinMax;
+  } else {
+    return 'maximized';
+  }
+};
+
+Template.sidebar.chatMinMax = function () {
+  var chatMinMax = Session.get('chatMinMax');
+  if (chatMinMax) {
+    return chatMinMax;
+  } else {
+    return 'maximized';
+  }
+};
+
+Template.sidebar.allUsers = function() {
   var roomId = Session.get('currentRoom'),
       room = Rooms.findOne({'_id': roomId}),
       allUsers;
@@ -788,6 +876,20 @@ Template.roomTemplate.allUsers = function() {
     {_id: {$in: room.allUsers}}
   );
   return allUsers;
+};
+
+Template.sidebar.displayName = function () {
+  var userId = this.user || this._id,
+      user = Meteor.users.findOne(userId);
+
+  if (user) {
+    if (user._id === Meteor.userId()) {
+      return 'me';
+    }
+    return displayName(user);
+  } else {
+    return 'none';
+  }
 };
 
 Template.roomTemplate.displayName = function () {
@@ -1224,7 +1326,7 @@ Template.gameStateContainer.gameStatus = function() {
       game = Games.findOne({'room': roomId, 'state': 'playing'}),
       currentPlayer,
       userDisplayName,
-      gameScore, score, scoreDescriptor = '',
+      gameScore, score,
       winner;
 
   if (room) {
@@ -1247,12 +1349,7 @@ Template.gameStateContainer.gameStatus = function() {
           'game': game._id
         });
         score = gameScore.score;
-        if (score > 15) {
-          scoreDescriptor = 'whopping';
-        } else if (score > 8) {
-          scoreDescriptor = 'fine';
-        }
-        return '<strong>' + userDisplayName + '</strong> won the last game with a <em>' + scoreDescriptor + '</em> score of <strong>' + gameScore.score + '</strong>!';
+        return '<strong>' + userDisplayName + '</strong> won the last game with <strong>' + gameScore.score + '</strong> points!';
       } else {
         // newly created room. no games at all
         return 'Waiting for players (to ready up)';
@@ -1359,6 +1456,9 @@ var submitChat = function(message) {
     message: message
   }, function (error, room) {
     if (! error) {
+      $('.chat-messages').scrollTop(
+        $('.chat-messages')[0].scrollHeight
+      );
     }
   });
 };
@@ -1459,6 +1559,11 @@ var joinRoomCb = function(roomId) {
         Meteor.call('setRoomReady', roomId, false);
       }
     }
+    setTimeout(function() {
+      $('.chat-messages').scrollTop(
+        $('.chat-messages')[0].scrollHeight
+      );
+    }, 100);
   }
 };
 
