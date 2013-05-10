@@ -260,9 +260,14 @@ Meteor.methods({
 // Users
 
 displayName = function (user) {
+  var email,
+      shortEmail;
   if (user.profile && user.profile.name)
     return user.profile.name;
-  return user.emails[0].address;
+
+  email = user.emails[0].address;
+  shortEmail = email.substring(0, email.indexOf('@'));
+  return shortEmail;
 };
 
 var contactEmail = function (user) {
